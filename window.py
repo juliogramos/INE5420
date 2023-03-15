@@ -12,14 +12,7 @@ class Ui(QtWidgets.QMainWindow):
         self.setCanvas()
         self.setPainter()
 
-        p1 = Point(50, 200)
-        p2 = Point (300, 300)
-        l1 = Line(Point(5,5), Point(105, 105))
-        l2 = Line(Point(200,400), Point(200, 0))
-        objList = [p1, p2, l1, l2]
-
-        for obj in objList:
-            obj.draw(self.painter)
+        self.draw_something()
 
 
     def setCanvas(self):
@@ -33,11 +26,14 @@ class Ui(QtWidgets.QMainWindow):
         self.pen.setWidth(5)
         self.painter.setPen(self.pen)
 
-    def getPainter(self):
-        return self.painter
-
     def draw_something(self):
-        self.painter.drawLine(10, 10, 20, 20)
-        self.painter.drawPoint(0,0)
+        p1 = Point(50, 200)
+        p2 = Point (300, 300)
+        l1 = Line(Point(5,5), Point(105, 105))
+        l2 = Line(Point(200,400), Point(200, 0))
+        objList = [p1, p2, l1, l2]
+
+        for obj in objList:
+            obj.draw(self.painter)
 
     #Fazer um método pra dar self.painter.end() no término do programa
