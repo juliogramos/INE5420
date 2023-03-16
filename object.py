@@ -7,6 +7,7 @@ class Point:
 
     def draw(self, painter):
         painter.drawPoint(self.x, self.y)
+        print("paintou")
 
 @dataclass
 class Line:
