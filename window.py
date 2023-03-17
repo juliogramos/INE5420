@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 
 from object import Point, Line, Wireframe
 from novoPonto import UiPonto
+from novaLinha import UiLinha
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
@@ -30,6 +31,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def setButtons(self):
         self.newPoint.clicked.connect(self.novoPontoWindow)
+        self.newLine.clicked.connect(self.novaLinhaWindow)
 
     def draw_something(self):
         p1 = Point(50, 200)
@@ -62,4 +64,24 @@ class Ui(QtWidgets.QMainWindow):
 
         self.update()
 
+    def novaLinhaWindow(self):
+        novaLinhaDialog = UiLinha()
+        if novaLinhaDialog.exec_() and novaLinhaDialog.xValue1.text() and novaLinhaDialog.xValue2.text() and novaLinhaDialog.yValue1.text() and novaLinhaDialog.yValue2.text():
+            print("entrou")
+            
+            x1 = int(novaLinhaDialog.xValue1.text()) 
+            x2 = int(novaLinhaDialog.xValue2.text()) 
+            y1 = int(novaLinhaDialog.yValue1.text()) 
+            y2 = int(novaLinhaDialog.yValue2.text()) 
+            print(f"ponto 1 ({x1}, {y1})")
+            print(f"ponto 2 ({x2}, {y2})")
+            newLine = Line(Point(x1, y1), Point(x2, y2))
+            newLine.draw(self.painter)
+
+            self.status.addItem("Linha adicionada com sucesso.")
+        else:
+
+            self.status.addItem("Falha ao adicionar linha.")
+
+        self.update()
     #Fazer um método pra dar self.painter.end() no término do programa
