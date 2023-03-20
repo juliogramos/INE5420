@@ -2,10 +2,18 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import Qt
 
+from dataclasses import dataclass
 from object import Point, Line, Wireframe
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
+
+@dataclass
+class Container:
+    xMin: int
+    yMin: int
+    xMax: int
+    yMax: int
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
@@ -15,6 +23,11 @@ class Ui(QtWidgets.QMainWindow):
         self.setCanvas()
         self.setPainter()
         self.setButtons()
+
+        #Determina o nome do objeto
+        self.indexes = [1, 1, 1]
+        self.displayFile = []
+        self.viewport = Container(400, 400, )
 
         #self.draw_something()
 
@@ -34,6 +47,7 @@ class Ui(QtWidgets.QMainWindow):
         self.newPoint.clicked.connect(self.novoPontoWindow)
         self.newLine.clicked.connect(self.novaLinhaWindow)
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
+
     def draw_something(self):
         p1 = Point(50, 200)
         p2 = Point (300, 300)
@@ -43,32 +57,19 @@ class Ui(QtWidgets.QMainWindow):
 
         for obj in objList:
             obj.draw(self.painter)
-    def novoPoligonoWindow(self):
-        novoPoligonoDialog = UiPoligono()
-        pontos = []
-        
-        #novoPoligonoDialog.newPoint.clicked.connect(self.update())
-        novoPoligonoDialog.buildPoligon.clicked.connect(lambda: Wireframe(pontos).draw(self.painter))
-        while (True):
-            if novoPoligonoDialog.exec_(): 
-                if novoPoligonoDialog.xValue.text() and novoPoligonoDialog.yValue.text():
-                    print("oi")
-                    x = int(novoPoligonoDialog.xValue.text())
-                    y = int(novoPoligonoDialog.yValue.text())
-                    pontos.append(Point(x, y))
-                    print(pontos)
-                    novoPoligonoDialog.xValue.clear()
-                    novoPoligonoDialog.yValue.clear()
-        self.update()
+
     def novoPontoWindow(self):
         novoPontoDialog = UiPonto()
         if novoPontoDialog.exec_() and novoPontoDialog.xValue.text() and novoPontoDialog.yValue.text():
-            print("entrou")
+            print("Entrou ponto")
             x = int(novoPontoDialog.xValue.text())
             y = int(novoPontoDialog.yValue.text())
             print(x)
             print(y)
-            novoPonto = Point(x, y)
+            novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]))
+            self.displayFile.append(novoPonto)
+            self.indexes[0] += 1
+            self.objectList.addItem(novoPonto.name)
             novoPonto.draw(self.painter)
 
             self.status.addItem("Ponto adicionado com sucesso.")
@@ -84,7 +85,7 @@ class Ui(QtWidgets.QMainWindow):
     def novaLinhaWindow(self):
         novaLinhaDialog = UiLinha()
         if novaLinhaDialog.exec_() and novaLinhaDialog.xValue1.text() and novaLinhaDialog.xValue2.text() and novaLinhaDialog.yValue1.text() and novaLinhaDialog.yValue2.text():
-            print("entrou")
+            print("Entrou linha")
             
             x1 = int(novaLinhaDialog.xValue1.text()) 
             x2 = int(novaLinhaDialog.xValue2.text()) 
@@ -92,7 +93,10 @@ class Ui(QtWidgets.QMainWindow):
             y2 = int(novaLinhaDialog.yValue2.text()) 
             print(f"ponto 1 ({x1}, {y1})")
             print(f"ponto 2 ({x2}, {y2})")
-            newLine = Line(Point(x1, y1), Point(x2, y2))
+            newLine = Line(Point(x1, y1, ""), Point(x2, y2, ""), "Linha {}".format(self.indexes[1]))
+            self.displayFile.append(newLine)
+            self.indexes[1] += 1
+            self.objectList.addItem(newLine.name)
             newLine.draw(self.painter)
 
             self.status.addItem("Linha adicionada com sucesso.")
@@ -101,4 +105,19 @@ class Ui(QtWidgets.QMainWindow):
             self.status.addItem("Falha ao adicionar linha.")
 
         self.update()
+    
+    def novoPoligonoWindow(self):
+        novoPoligonoDialog = UiPoligono()
+        if novoPoligonoDialog.exec_() and novoPoligonoDialog.listaPontos:
+            print("Entrou poligono")
+            newPoly = Wireframe(novoPoligonoDialog.polyList, "Polígono {}".format(self.indexes[2]))
+            self.displayFile.append(newPoly)
+            self.indexes[2] += 1
+            self.objectList.addItem(newPoly.name)
+            newPoly.draw(self.painter)
+            self.status.addItem("Polígono adicionado com sucesso.")
+        else:
+            self.status.addItem("Falha ao adicionar polígono.")
+        self.update()
+
     #Fazer um método pra dar self.painter.end() no término do programa
