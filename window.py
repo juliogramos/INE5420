@@ -33,7 +33,14 @@ class Ui(QtWidgets.QMainWindow):
 
         #self.draw_something()
 
-
+    def viewportTransformationx(self, xw):
+        xvp = (xw - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
+        
+        return round(xvp) 
+    def viewportTransformationy(self, yw):
+        yvp = (1 - ((yw - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin) 
+        
+        return round(yvp) 
     def setCanvas(self):
         self.canvas = QtGui.QPixmap(400, 400)
         self.canvas.fill(Qt.white)
@@ -64,8 +71,8 @@ class Ui(QtWidgets.QMainWindow):
         novoPontoDialog = UiPonto()
         if novoPontoDialog.exec_() and novoPontoDialog.xValue.text() and novoPontoDialog.yValue.text():
             print("Entrou ponto")
-            x = int(novoPontoDialog.xValue.text())
-            y = int(novoPontoDialog.yValue.text())
+            x = self.viewportTransformationx(int(novoPontoDialog.xValue.text()))
+            y = self.viewportTransformationy(int(novoPontoDialog.yValue.text()))
             print(x)
             print(y)
             novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]))
@@ -89,10 +96,10 @@ class Ui(QtWidgets.QMainWindow):
         if novaLinhaDialog.exec_() and novaLinhaDialog.xValue1.text() and novaLinhaDialog.xValue2.text() and novaLinhaDialog.yValue1.text() and novaLinhaDialog.yValue2.text():
             print("Entrou linha")
             
-            x1 = int(novaLinhaDialog.xValue1.text()) 
-            x2 = int(novaLinhaDialog.xValue2.text()) 
-            y1 = int(novaLinhaDialog.yValue1.text()) 
-            y2 = int(novaLinhaDialog.yValue2.text()) 
+            x1 = self.viewportTransformationx(int((novaLinhaDialog.xValue1.text()))) 
+            x2 = self.viewportTransformationx(int((novaLinhaDialog.xValue2.text()))) 
+            y1 = self.viewportTransformationy(int((novaLinhaDialog.yValue1.text()))) 
+            y2 = self.viewportTransformationy(int((novaLinhaDialog.yValue2.text())))
             print(f"ponto 1 ({x1}, {y1})")
             print(f"ponto 2 ({x2}, {y2})")
             newLine = Line(Point(x1, y1, ""), Point(x2, y2, ""), "Linha {}".format(self.indexes[1]))
