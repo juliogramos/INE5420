@@ -27,7 +27,9 @@ class Ui(QtWidgets.QMainWindow):
         #Determina o nome do objeto
         self.indexes = [1, 1, 1]
         self.displayFile = []
-        self.viewport = Container(400, 400, )
+        
+        self.cgViewport = Container(400, 400, 800, 800)
+        self.cgWindow = Container(0, 0, 1200, 1200)
 
         #self.draw_something()
 
