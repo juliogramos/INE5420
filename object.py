@@ -19,8 +19,13 @@ class Line:
 
 @dataclass
 class Wireframe:
-    lines: list[Line]
+    points: list[Point]
 
     def draw(self, painter):
-        for line in self.lines:
-            line.draw(painter)
+        for i in range(len(self.points)):
+            if i == 0:
+                Line(self.points[0], self.points[i+1]).draw(painter)
+            elif i == (len(self.points)):
+                Line(self.points[i], self.points[0]).draw(painter)
+            else:
+                Line(self.points[i], self.points[i+1]).draw(painter)

@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 from object import Point, Line, Wireframe
 from novoPonto import UiPonto
 from novaLinha import UiLinha
+from novoPoligono import UiPoligono
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
@@ -32,7 +33,7 @@ class Ui(QtWidgets.QMainWindow):
     def setButtons(self):
         self.newPoint.clicked.connect(self.novoPontoWindow)
         self.newLine.clicked.connect(self.novaLinhaWindow)
-
+        self.newPoligon.clicked.connect(self.novoPoligonoWindow)
     def draw_something(self):
         p1 = Point(50, 200)
         p2 = Point (300, 300)
@@ -42,7 +43,23 @@ class Ui(QtWidgets.QMainWindow):
 
         for obj in objList:
             obj.draw(self.painter)
-
+    def novoPoligonoWindow(self):
+        novoPoligonoDialog = UiPoligono()
+        pontos = []
+        
+        #novoPoligonoDialog.newPoint.clicked.connect(self.update())
+        novoPoligonoDialog.buildPoligon.clicked.connect(lambda: Wireframe(pontos).draw(self.painter))
+        while (True):
+            if novoPoligonoDialog.exec_(): 
+                if novoPoligonoDialog.xValue.text() and novoPoligonoDialog.yValue.text():
+                    print("oi")
+                    x = int(novoPoligonoDialog.xValue.text())
+                    y = int(novoPoligonoDialog.yValue.text())
+                    pontos.append(Point(x, y))
+                    print(pontos)
+                    novoPoligonoDialog.xValue.clear()
+                    novoPoligonoDialog.yValue.clear()
+        self.update()
     def novoPontoWindow(self):
         novoPontoDialog = UiPonto()
         if novoPontoDialog.exec_() and novoPontoDialog.xValue.text() and novoPontoDialog.yValue.text():
