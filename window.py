@@ -38,6 +38,7 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
 
         #self.draw_something()
+    
 
     def viewportTransformation(self, point):
         xvp = (point.x - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
@@ -66,7 +67,10 @@ class Ui(QtWidgets.QMainWindow):
 
         self.panRightButton.clicked.connect(self.panRight)
         self.panLeftButton.clicked.connect(self.panLeft)
+        self.panUpButton.clicked.connect(self.panUp)
+        self.panDownButton.clicked.connect(self.panDown)
 
+        self.RestoreButtom.clicked.connect(self.restoreOriginal)
         self.limpa.clicked.connect(self.drawAll)
 
     def drawOne(self, object):
@@ -169,14 +173,38 @@ class Ui(QtWidgets.QMainWindow):
 
     def panRight(self):
         #clamp()
-        self.cgViewport.xMax += 100
-        self.cgViewport.xMin += 100
+        self.cgWindow.xMax += 100
+        self.cgWindow.xMin += 100
         self.drawAll()
 
     def panLeft(self):
         #clamp()
-        self.cgViewport.xMax -= 10
-        self.cgViewport.xMin -= 10
+        self.cgWindow.xMax -= 100
+        self.cgWindow.xMin -= 100
+        self.drawAll()
+    
+    def panUp(self):
+        #clamp()
+        self.cgWindow.yMax += 100
+        self.cgWindow.yMin += 100
         self.drawAll()
 
+    def panDown(self):
+        #clamp()
+        self.cgWindow.yMax -= 100
+        self.cgWindow.yMin -= 100
+        self.drawAll()
+
+    def restoreOriginal(self):
+        self.cgViewport.xMin = self.vpSize[0]
+        self.cgViewport.yMin = self.vpSize[1]
+        self.cgViewport.xMax = self.vpSize[2]
+        self.cgViewport.yMax = self.vpSize[3]
+    
+        self.cgWindow.xMin = self.wSize[0]
+        self.cgWindow.yMin = self.wSize[1]
+        self.cgWindow.xMax = self.wSize[2]
+        self.cgWindow.yMax = self.wSize[3]
+        
+        self.drawAll()
     #Fazer um método pra dar self.painter.end() no término do programa
