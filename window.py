@@ -8,6 +8,9 @@ from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 
+def clamp(n, inferior, superior):
+    return max(inferior, min(n, superior))
+
 @dataclass
 class Container:
     xMin: int
@@ -27,9 +30,12 @@ class Ui(QtWidgets.QMainWindow):
         #Determina o nome do objeto
         self.indexes = [1, 1, 1]
         self.displayFile = []
+
+        self.vpSize = [400, 400, 800, 800]
+        self.wSize = [0, 0, 1200, 1200]
         
-        self.cgViewport = Container(400, 400, 800, 800)
-        self.cgWindow = Container(0, 0, 1200, 1200)
+        self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
+        self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
 
         #self.draw_something()
 
@@ -54,6 +60,13 @@ class Ui(QtWidgets.QMainWindow):
         self.newPoint.clicked.connect(self.novoPontoWindow)
         self.newLine.clicked.connect(self.novaLinhaWindow)
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
+
+        self.zoomPlus.clicked.connect(self.zoomViewportIn)
+        self.zoomMinus.clicked.connect(self.zoomViewportOut)
+
+        self.panRightButton.clicked.connect(self.panRight)
+        self.panLeftButton.clicked.connect(self.panLeft)
+
         self.limpa.clicked.connect(self.drawAll)
 
     def drawOne(self, object):
@@ -132,10 +145,38 @@ class Ui(QtWidgets.QMainWindow):
             self.displayFile.append(newPoly)
             self.indexes[2] += 1
             self.objectList.addItem(newPoly.name)
-            newPoly.draw(self.painter)
+            self.drawOne(newPoly)
             self.status.addItem("Polígono adicionado com sucesso.")
         else:
             self.status.addItem("Falha ao adicionar polígono.")
         self.update()
+
+    def zoomViewportIn(self):
+        #clamp()
+        self.cgViewport.xMax += 10
+        self.cgViewport.xMin -= 10
+        self.cgViewport.yMax += 10
+        self.cgViewport.yMin -= 10
+        self.drawAll()
+
+    def zoomViewportOut(self):
+        #clamp()
+        self.cgViewport.xMax -= 10
+        self.cgViewport.xMin += 10
+        self.cgViewport.yMax -= 10
+        self.cgViewport.yMin += 10
+        self.drawAll()
+
+    def panRight(self):
+        #clamp()
+        self.cgViewport.xMax += 100
+        self.cgViewport.xMin += 100
+        self.drawAll()
+
+    def panLeft(self):
+        #clamp()
+        self.cgViewport.xMax -= 10
+        self.cgViewport.xMin -= 10
+        self.drawAll()
 
     #Fazer um método pra dar self.painter.end() no término do programa
