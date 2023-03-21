@@ -7,8 +7,8 @@ class Point:
     name: str
     type: str = "Point"
 
-    def draw(self, painter):
-        painter.drawPoint(self.x, self.y)
+    def draw(self, painter, x , y):
+        painter.drawPoint(x, y)
         print("paintou")
 
 @dataclass

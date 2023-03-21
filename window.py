@@ -33,18 +33,16 @@ class Ui(QtWidgets.QMainWindow):
 
         #self.draw_something()
 
-    def viewportTransformationx(self, xw):
-        xvp = (xw - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
-        
-        return round(xvp) 
-    def viewportTransformationy(self, yw):
-        yvp = (1 - ((yw - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin) 
-        
-        return round(yvp) 
+    def viewportTransformation(self, point):
+        xvp = (point.x - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
+        yvp = (1 - ((point.y - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
+
+        return (round(xvp), round(yvp))
+    
     def setCanvas(self):
-        self.canvas = QtGui.QPixmap(400, 400)
-        self.canvas.fill(Qt.white)
-        self.mainLabel.setPixmap(self.canvas)
+        canvas = QtGui.QPixmap(400, 400)
+        canvas.fill(Qt.white)
+        self.mainLabel.setPixmap(canvas)
 
     def setPainter(self):
         self.painter = QtGui.QPainter(self.mainLabel.pixmap())
@@ -56,38 +54,51 @@ class Ui(QtWidgets.QMainWindow):
         self.newPoint.clicked.connect(self.novoPontoWindow)
         self.newLine.clicked.connect(self.novaLinhaWindow)
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
+        self.limpa.clicked.connect(self.drawAll)
 
-    def draw_something(self):
-        p1 = Point(50, 200)
-        p2 = Point (300, 300)
-        l1 = Line(Point(5,5), Point(105, 105))
-        l2 = Line(Point(200,400), Point(200, 0))
-        objList = [p1, p2, l1, l2]
+    def drawOne(self, object):
+        if object.type == "Point":
+            (x, y) = self.viewportTransformation(object)
+            print(x)
+            print(y)
+            self.painter.drawPoint(x, y)
+        elif object.type == "Line":
+            (x1, y1) = self.viewportTransformation(object.p1)
+            (x2,y2) = self.viewportTransformation(object.p2)
+            print(f"ponto 1 ({x1}, {y1})")
+            print(f"ponto 2 ({x2}, {y2})")
+            self.painter.drawLine(x1, y1, x2, y2)
+        elif object.type == "Polygon":
+            ps = []
+            for p in object.points:
+                ps.append(self.viewportTransformation(p))
+            
+            for i in range(1, len(ps)):
+                self.painter.drawLine(ps[i-1][0], ps[i-1][1], ps[i][0], ps[i][1])
+            self.painter.drawLine(ps[-1][0], ps[-1][1], ps[0][0], ps[0][1])
 
-        for obj in objList:
-            obj.draw(self.painter)
+    def drawAll(self):
+        self.mainLabel.pixmap().fill(Qt.white)
+        for object in self.displayFile:
+            self.drawOne(object)
+        self.update()
 
     def novoPontoWindow(self):
         novoPontoDialog = UiPonto()
         if novoPontoDialog.exec_() and novoPontoDialog.xValue.text() and novoPontoDialog.yValue.text():
             print("Entrou ponto")
-            x = self.viewportTransformationx(int(novoPontoDialog.xValue.text()))
-            y = self.viewportTransformationy(int(novoPontoDialog.yValue.text()))
-            print(x)
-            print(y)
+            x = int(novoPontoDialog.xValue.text())
+            y = int(novoPontoDialog.yValue.text())
             novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]))
             self.displayFile.append(novoPonto)
             self.indexes[0] += 1
             self.objectList.addItem(novoPonto.name)
-            novoPonto.draw(self.painter)
+            #novoPonto.draw(self.painter)
+            self.drawOne(novoPonto)
 
             self.status.addItem("Ponto adicionado com sucesso.")
         else:
             self.status.addItem("Falha ao adicionar ponto.")
-
-        #ADICIONAR PONTO NA LISTA
-        #COLOCAR LISTA EM UM LUGAR MELHOR
-        #FAZER UMA FUNÇÃO QUE UPDATA TUDO NA LISTA
 
         self.update()
 
@@ -96,17 +107,15 @@ class Ui(QtWidgets.QMainWindow):
         if novaLinhaDialog.exec_() and novaLinhaDialog.xValue1.text() and novaLinhaDialog.xValue2.text() and novaLinhaDialog.yValue1.text() and novaLinhaDialog.yValue2.text():
             print("Entrou linha")
             
-            x1 = self.viewportTransformationx(int((novaLinhaDialog.xValue1.text()))) 
-            x2 = self.viewportTransformationx(int((novaLinhaDialog.xValue2.text()))) 
-            y1 = self.viewportTransformationy(int((novaLinhaDialog.yValue1.text()))) 
-            y2 = self.viewportTransformationy(int((novaLinhaDialog.yValue2.text())))
-            print(f"ponto 1 ({x1}, {y1})")
-            print(f"ponto 2 ({x2}, {y2})")
+            x1 = int(novaLinhaDialog.xValue1.text())
+            x2 = int(novaLinhaDialog.xValue2.text())
+            y1 = int(novaLinhaDialog.yValue1.text())
+            y2 = int(novaLinhaDialog.yValue2.text())
             newLine = Line(Point(x1, y1, ""), Point(x2, y2, ""), "Linha {}".format(self.indexes[1]))
             self.displayFile.append(newLine)
             self.indexes[1] += 1
             self.objectList.addItem(newLine.name)
-            newLine.draw(self.painter)
+            self.drawOne(newLine)
 
             self.status.addItem("Linha adicionada com sucesso.")
         else:
