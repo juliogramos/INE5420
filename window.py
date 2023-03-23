@@ -214,6 +214,78 @@ class Ui(QtWidgets.QMainWindow):
                 p.x = X
                 p.y = Y 
 
+    def escalonamento(self, obj, Sx, Sy):
+        if obj.type == "Point":
+            P = [obj.x, obj.y, 1]
+            T = [   [Sx, 0, 0],
+                    [0, Sy, 0],
+                    [0, 0, 1]
+                ]
+            (X,Y,W) = np.matmul(P, T)
+            obj.x = X
+            obj.y = Y
+        
+        elif obj.type == "Line":
+            P1 = [obj.p1.x, obj.p1.y, 1]
+            P2 = [obj.p2.x, obj.p2.y, 1]
+            T = [   [Sx, 0, 0],
+                    [0, Sy, 0],
+                    [0, 0, 1]
+                ]
+            (X1, Y1, W1) = np.matmul(P1, T)
+            (X2, Y2, W2) = np.matmul(P2, T)
+            obj.p1.x = X1
+            obj.p1.y = Y1
+            obj.p2.x = X2
+            obj.p2.y = Y2
+
+        elif obj.type == "Polygon":
+            T = [   [Sx, 0, 0],
+                    [0, Sy, 0],
+                    [0, 0, 1]
+                ]
+            for p in obj.points:
+                P = (p.x, p.y, 1)
+                (X,Y,W) = np.matmul(P, T)
+                p.x = X
+                p.y = Y 
+
+    def rotacao(self, obj, degree):
+        if obj.type == "Point":
+            P = [obj.x, obj.y, 1]
+            T = [   [np.cos(degree), -np.sin(degree), 0],
+                    [np.sin(degree), np.cos(degree), 0],
+                    [0, 0, 1]
+                ]
+            (X,Y,W) = np.matmul(P, T)
+            obj.x = X
+            obj.y = Y
+        
+        elif obj.type == "Line":
+            P1 = [obj.p1.x, obj.p1.y, 1]
+            P2 = [obj.p2.x, obj.p2.y, 1]
+            T = [   [np.cos(degree), -np.sin(degree), 0],
+                    [np.sin(degree), np.cos(degree), 0],
+                    [0, 0, 1]
+                ]
+            (X1, Y1, W1) = np.matmul(P1, T)
+            (X2, Y2, W2) = np.matmul(P2, T)
+            obj.p1.x = X1
+            obj.p1.y = Y1
+            obj.p2.x = X2
+            obj.p2.y = Y2
+
+        elif obj.type == "Polygon":
+
+            T = [   [np.cos(degree), -np.sin(degree), 0],
+                    [np.sin(degree), np.cos(degree), 0],
+                    [0, 0, 1]
+                 ]
+            for p in obj.points:
+                P = (p.x, p.y, 1)
+                (X,Y,W) = np.matmul(P, T)
+                p.x = X
+                p.y = Y 
 
     # FUNCOES DE VISUALIZACAO
 
