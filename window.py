@@ -1,12 +1,14 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import Qt
+import numpy as np
 
 from dataclasses import dataclass
 from object import Point, Line, Wireframe
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
+from transformacao import UiTransforma
 
 def clamp(n, inferior, superior):
     return max(inferior, min(n, superior))
@@ -70,7 +72,10 @@ class Ui(QtWidgets.QMainWindow):
         self.panUpButton.clicked.connect(self.panUp)
         self.panDownButton.clicked.connect(self.panDown)
 
+        self.transButton.clicked.connect(self.transformaWindow)
+
         self.RestoreButtom.clicked.connect(self.restoreOriginal)
+
         self.limpa.clicked.connect(self.drawAll)
 
     def drawOne(self, object):
@@ -99,6 +104,8 @@ class Ui(QtWidgets.QMainWindow):
         for object in self.displayFile:
             self.drawOne(object)
         self.update()
+
+    #FUNCOES DE JANELA
 
     def novoPontoWindow(self):
         novoPontoDialog = UiPonto()
@@ -155,6 +162,61 @@ class Ui(QtWidgets.QMainWindow):
             self.status.addItem("Falha ao adicionar polígono.")
         self.update()
 
+    def transformaWindow(self):
+        if self.objectList.currentRow() == -1:
+            self.status.addItem("Erro: nenhum objeto selecionado.")
+            return
+
+        transformaDialog = UiTransforma()
+        if transformaDialog.exec_():
+            if transformaDialog.transX and transformaDialog.transY:
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+                Dx = int(transformaDialog.transX.text())
+                Dy = int(transformaDialog.transY.text())
+                self.translacao(obj, Dx, Dy)
+                self.status.addItem(obj.name + " transformado com sucesso.")
+                self.drawAll()
+
+    def translacao(self, obj, Dx, Dy):
+        if obj.type == "Point":
+            P = [obj.x, obj.y, 1]
+            T = [   [1, 0, 0],
+                    [0, 1, 0],
+                    [Dx, Dy, 1]
+                ]
+            (X,Y,W) = np.matmul(P, T)
+            obj.x = X
+            obj.y = Y
+        
+        elif obj.type == "Line":
+            P1 = [obj.p1.x, obj.p1.y, 1]
+            P2 = [obj.p2.x, obj.p2.y, 1]
+            T = [   [1, 0, 0],
+                    [0, 1, 0],
+                    [Dx, Dy, 1]
+                ]
+            (X1, Y1, W1) = np.matmul(P1, T)
+            (X2, Y2, W2) = np.matmul(P2, T)
+            obj.p1.x = X1
+            obj.p1.y = Y1
+            obj.p2.x = X2
+            obj.p2.y = Y2
+
+        elif obj.type == "Polygon":
+            T = [   [1, 0, 0],
+                    [0, 1, 0],
+                    [Dx, Dy, 1]
+                ]
+            for p in obj.points:
+                P = (p.x, p.y, 1)
+                (X,Y,W) = np.matmul(P, T)
+                p.x = X
+                p.y = Y 
+
+
+    # FUNCOES DE VISUALIZACAO
+
     def zoomViewportIn(self):
         #clamp()
         self.cgViewport.xMax += 10
@@ -207,4 +269,7 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.yMax = self.wSize[3]
         
         self.drawAll()
+
+    def printalista(self):
+        print(self.objectList.currentRow())
     #Fazer um método pra dar self.painter.end() no término do programa
