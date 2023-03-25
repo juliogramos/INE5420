@@ -211,7 +211,24 @@ class Ui(QtWidgets.QMainWindow):
                 self.rotacao(obj, angulo)
                 self.status.addItem(obj.name + " rotacionado com sucesso.")
                 self.drawAll()
-            self.status.addItem(obj.name + " transformado com sucesso.")
+                self.status.addItem(obj.name + " transformado com sucesso.")
+    
+    def find_center(self, obj):
+        if obj.type == "Line":
+            x = (obj.p1.x + obj.p2.x)/2
+            y = (obj.p1.y + obj.p2.y)/2
+            
+            return (x, y)
+        
+        if obj.type == "Polygon":
+            x, y = 0, 0
+            for i in obj.points:
+                x += i.x
+                y += i.y 
+
+            x, y = len(obj.points), len(obj.points)
+            
+            return (x, y)
 
     def translacao(self, obj, Dx, Dy):
         if obj.type == "Point":
