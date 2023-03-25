@@ -177,6 +177,21 @@ class Ui(QtWidgets.QMainWindow):
                 self.translacao(obj, Dx, Dy)
                 self.status.addItem(obj.name + " transformado com sucesso.")
                 self.drawAll()
+            if transformaDialog.escX and transformaDialog.escY:
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+                Sx = int(transformaDialog.escX.text())
+                Sy = int(transformaDialog.escY.text())
+                self.escalonamento(obj, Sx, Sy)
+                self.status.addItem(obj.name + " escalonado com sucesso.")
+                self.drawAll()
+            if transformaDialog.rot_angulo:
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+                angulo = int(transformaDialog.rot_angulo.text())
+                self.rotacao(obj, angulo)
+                self.status.addItem(obj.name + " escalonado com sucesso.")
+                self.drawAll()
 
     def translacao(self, obj, Dx, Dy):
         if obj.type == "Point":
