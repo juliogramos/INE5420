@@ -34,7 +34,7 @@ class Ui(QtWidgets.QMainWindow):
         self.displayFile = []
 
         self.vpSize = [400, 400, 800, 800]
-        self.wSize = [0, 0, 1200, 1200]
+        self.wSize = [0, 0, 1000, 1000]
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
@@ -169,29 +169,49 @@ class Ui(QtWidgets.QMainWindow):
 
         transformaDialog = UiTransforma()
         if transformaDialog.exec_():
-            if transformaDialog.transX and transformaDialog.transY:
+            if transformaDialog.transX.text() or transformaDialog.transY.text():
                 obj = self.displayFile[self.objectList.currentRow()]
                 print(obj.name)
-                Dx = int(transformaDialog.transX.text())
-                Dy = int(transformaDialog.transY.text())
+                if transformaDialog.transX.text():
+                    Dx = int(transformaDialog.transX.text())
+                else:
+                    Dx = 0
+
+                if transformaDialog.transY.text():
+                    Dy = int(transformaDialog.transY.text())
+                else:
+                    Dy = 0
+
                 self.translacao(obj, Dx, Dy)
-                self.status.addItem(obj.name + " transformado com sucesso.")
+                self.status.addItem(obj.name + " transladado com sucesso.")
                 self.drawAll()
-            if transformaDialog.escX and transformaDialog.escY:
+
+            if transformaDialog.escX.text() or transformaDialog.escY.text():
                 obj = self.displayFile[self.objectList.currentRow()]
                 print(obj.name)
-                Sx = int(transformaDialog.escX.text())
-                Sy = int(transformaDialog.escY.text())
+
+                if transformaDialog.escX.text():
+                    Sx = int(transformaDialog.escX.text())
+                else:
+                    Sx = 1
+
+                if transformaDialog.escY.text():
+                    Sy = int(transformaDialog.escY.text())
+                else:
+                    Sy = 1
+
                 self.escalonamento(obj, Sx, Sy)
                 self.status.addItem(obj.name + " escalonado com sucesso.")
                 self.drawAll()
-            if transformaDialog.rot_angulo:
+
+            if transformaDialog.rot_angulo.text():
                 obj = self.displayFile[self.objectList.currentRow()]
                 print(obj.name)
                 angulo = int(transformaDialog.rot_angulo.text())
                 self.rotacao(obj, angulo)
-                self.status.addItem(obj.name + " escalonado com sucesso.")
+                self.status.addItem(obj.name + " rotacionado com sucesso.")
                 self.drawAll()
+            self.status.addItem(obj.name + " transformado com sucesso.")
 
     def translacao(self, obj, Dx, Dy):
         if obj.type == "Point":
