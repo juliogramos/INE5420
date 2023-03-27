@@ -242,7 +242,7 @@ class Ui(QtWidgets.QMainWindow):
                 x += i.x
                 y += i.y 
 
-            x, y = len(obj.points), len(obj.points)
+            x, y = x//len(obj.points), y//len(obj.points)
             
             return (x, y)
 
@@ -294,6 +294,8 @@ class Ui(QtWidgets.QMainWindow):
             obj.y = Y
         
         elif obj.type == "Line":
+            centroInicial = self.find_center(obj)
+
             P1 = [obj.p1.x, obj.p1.y, 1]
             P2 = [obj.p2.x, obj.p2.y, 1]
             T = [   [Sx, 0, 0],
@@ -307,7 +309,16 @@ class Ui(QtWidgets.QMainWindow):
             obj.p2.x = X2
             obj.p2.y = Y2
 
+            centroFinal = self.find_center(obj)
+            dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1])
+            #print(centroInicial)
+            #print(centroFinal)
+            #print(dist)
+            self.translacao(obj, dist[0], dist[1])
+
         elif obj.type == "Polygon":
+            centroInicial = self.find_center(obj)
+
             T = [   [Sx, 0, 0],
                     [0, Sy, 0],
                     [0, 0, 1]
@@ -317,6 +328,13 @@ class Ui(QtWidgets.QMainWindow):
                 (X,Y,W) = np.matmul(P, T)
                 p.x = X
                 p.y = Y 
+
+            centroFinal = self.find_center(obj)
+            dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1])
+            #print(centroInicial)
+            #print(centroFinal)
+            #print(dist)
+            self.translacao(obj, dist[0], dist[1])
 
     def rotacao(self, obj, degree):
         if obj.type == "Point":
