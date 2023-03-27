@@ -224,12 +224,20 @@ class Ui(QtWidgets.QMainWindow):
                 obj = self.displayFile[self.objectList.currentRow()]
                 print(obj.name)
                 angulo = int(transformaDialog.rot_angulo.text())
-                self.rotacao(obj, angulo)
+                self.rotacao(obj, angulo, 
+                             transformaDialog.rotOrigem.isChecked(), 
+                             transformaDialog.rotObject.isChecked(),
+                             transformaDialog.rotPoint.isChecked(),
+                             transformaDialog.rotPointX.text(),
+                             transformaDialog.rotPointY.text())
                 self.status.addItem(obj.name + " rotacionado com sucesso.")
                 self.drawAll()
                 self.status.addItem(obj.name + " transformado com sucesso.")
     
     def find_center(self, obj):
+        if obj.type == "Point":
+            return (obj.x, obj.y)
+        
         if obj.type == "Line":
             x = (obj.p1.x + obj.p2.x)/2
             y = (obj.p1.y + obj.p2.y)/2
@@ -283,6 +291,8 @@ class Ui(QtWidgets.QMainWindow):
                 p.y = Y 
 
     def escalonamento(self, obj, Sx, Sy):
+        centroInicial = self.find_center(obj)
+        
         if obj.type == "Point":
             P = [obj.x, obj.y, 1]
             T = [   [Sx, 0, 0],
@@ -294,8 +304,6 @@ class Ui(QtWidgets.QMainWindow):
             obj.y = Y
         
         elif obj.type == "Line":
-            centroInicial = self.find_center(obj)
-
             P1 = [obj.p1.x, obj.p1.y, 1]
             P2 = [obj.p2.x, obj.p2.y, 1]
             T = [   [Sx, 0, 0],
@@ -308,13 +316,6 @@ class Ui(QtWidgets.QMainWindow):
             obj.p1.y = Y1
             obj.p2.x = X2
             obj.p2.y = Y2
-
-            centroFinal = self.find_center(obj)
-            dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1])
-            #print(centroInicial)
-            #print(centroFinal)
-            #print(dist)
-            self.translacao(obj, dist[0], dist[1])
 
         elif obj.type == "Polygon":
             centroInicial = self.find_center(obj)
@@ -329,14 +330,27 @@ class Ui(QtWidgets.QMainWindow):
                 p.x = X
                 p.y = Y 
 
-            centroFinal = self.find_center(obj)
-            dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1])
-            #print(centroInicial)
-            #print(centroFinal)
-            #print(dist)
+        centroFinal = self.find_center(obj)
+        dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1])
+        #print(centroInicial)
+        #print(centroFinal)
+        #print(dist)
+        self.translacao(obj, dist[0], dist[1])
+
+    def rotacao(self, obj, degree, toOrigin, toObject, toPoint, pX, pY):
+        centroInicial = self.find_center(obj)
+        
+        if toObject:
+            self.translacao(obj, -centroInicial[0], -centroInicial[1])
+        elif toPoint:
+            #TA ERRADO EU ACHO
+            if not pX and not pY:
+                self.status.addItem("Erro: ponto de rotação não especificado.")
+                return
+            ponto = (int(pX), int(pY))
+            dist = (centroInicial[0] - ponto[0], centroInicial[1] - ponto[1])
             self.translacao(obj, dist[0], dist[1])
 
-    def rotacao(self, obj, degree):
         if obj.type == "Point":
             P = [obj.x, obj.y, 1]
             T = [   [np.cos(degree), -np.sin(degree), 0],
@@ -362,7 +376,9 @@ class Ui(QtWidgets.QMainWindow):
             obj.p2.y = Y2
 
         elif obj.type == "Polygon":
-
+            print(toOrigin)
+            print(toObject)
+            print(toPoint)
             T = [   [np.cos(degree), -np.sin(degree), 0],
                     [np.sin(degree), np.cos(degree), 0],
                     [0, 0, 1]
@@ -372,6 +388,12 @@ class Ui(QtWidgets.QMainWindow):
                 (X,Y,W) = np.matmul(P, T)
                 p.x = X
                 p.y = Y 
+
+        if toObject:
+            self.translacao(obj, centroInicial[0], centroInicial[1])
+        elif toPoint:
+            #N SEI
+            pass
 
     # FUNCOES DE VISUALIZACAO
 
