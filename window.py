@@ -343,13 +343,11 @@ class Ui(QtWidgets.QMainWindow):
         if toObject:
             self.translacao(obj, -centroInicial[0], -centroInicial[1])
         elif toPoint:
-            #TA ERRADO EU ACHO
-            if not pX and not pY:
+            #Nao sei se ta certo
+            if not pX or not pY:
                 self.status.addItem("Erro: ponto de rotação não especificado.")
                 return
-            ponto = (int(pX), int(pY))
-            dist = (centroInicial[0] - ponto[0], centroInicial[1] - ponto[1])
-            self.translacao(obj, dist[0], dist[1])
+            self.translacao(obj, -int(pX), -int(pY))
 
         if obj.type == "Point":
             P = [obj.x, obj.y, 1]
@@ -392,8 +390,8 @@ class Ui(QtWidgets.QMainWindow):
         if toObject:
             self.translacao(obj, centroInicial[0], centroInicial[1])
         elif toPoint:
-            #N SEI
-            pass
+            #Nao sei se ta certo
+            self.translacao(obj, int(pX), int(pY))
 
     # FUNCOES DE VISUALIZACAO
 
