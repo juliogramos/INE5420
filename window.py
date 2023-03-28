@@ -33,8 +33,8 @@ class Ui(QtWidgets.QMainWindow):
         self.indexes = [1, 1, 1]
         self.displayFile = []
 
-        self.vpSize = [400, 400, 800, 800]
-        self.wSize = [0, 0, 1000, 1000]
+        self.vpSize = [0, 0, 400, 400]
+        self.wSize = [0, 0, 400, 400]
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
