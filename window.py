@@ -395,20 +395,20 @@ class Ui(QtWidgets.QMainWindow):
 
     # FUNCOES DE VISUALIZACAO
 
-    def zoomViewportIn(self):
-        #clamp()
-        self.cgViewport.xMax += 10
-        self.cgViewport.xMin -= 10
-        self.cgViewport.yMax += 10
-        self.cgViewport.yMin -= 10
-        self.drawAll()
-
     def zoomViewportOut(self):
         #clamp()
-        self.cgViewport.xMax -= 10
-        self.cgViewport.xMin += 10
-        self.cgViewport.yMax -= 10
-        self.cgViewport.yMin += 10
+        self.cgWindow.xMax += 10
+        self.cgWindow.xMin -= 10
+        self.cgWindow.yMax += 10
+        self.cgWindow.yMin -= 10
+        self.drawAll()
+
+    def zoomViewportIn(self):
+        #clamp()
+        self.cgWindow.xMax -= 10
+        self.cgWindow.xMin += 10
+        self.cgWindow.yMax -= 10
+        self.cgWindow.yMin += 10
         self.drawAll()
 
     def panRight(self):
