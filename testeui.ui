@@ -224,8 +224,8 @@
    <widget class="QPushButton" name="RestoreButtom">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>220</y>
+      <x>160</x>
+      <y>280</y>
       <width>81</width>
       <height>25</height>
      </rect>
@@ -248,6 +248,20 @@
     </property>
     <property name="text">
      <string>Transformar</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="rotWindowButton">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>200</y>
+      <width>141</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Rotacionar
+Window</string>
     </property>
    </widget>
   </widget>

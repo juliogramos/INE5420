@@ -38,14 +38,25 @@ class Ui(QtWidgets.QMainWindow):
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
+        self.cgWindowPPC = Container(-1,-1,1,1)
+        
+        self.ppcMatrix =    [   [0, 0, 0],
+                                [0, 0, 0],
+                                [0, 0, 0]
+                            ]
+        
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
 
         #self.draw_something()
     
 
     def viewportTransformation(self, point):
-        xvp = (point.x - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
-        yvp = (1 - ((point.y - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
-
+        #xvp = (point.cn_x - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
+        #yvp = (1 - ((point.cn_y - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
+        print(self.cgWindowPPC)
+        xvp = (point.cn_x - self.cgWindowPPC.xMin)/(self.cgWindowPPC.xMax - self.cgWindowPPC.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
+        yvp = (1 - ((point.cn_y - self.cgWindowPPC.yMin)/(self.cgWindowPPC.yMax - self.cgWindowPPC.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
         return (round(xvp), round(yvp))
     
     def setCanvas(self):
@@ -79,6 +90,7 @@ class Ui(QtWidgets.QMainWindow):
         self.limpa.clicked.connect(self.drawAll)
 
     def drawOne(self, object):
+        self.applyPPCmatrixOne(object)
         if object.type == "Point":
             (x, y) = self.viewportTransformation(object)
             print(x)
@@ -114,7 +126,7 @@ class Ui(QtWidgets.QMainWindow):
             print(self.pen.color())
             x = int(novoPontoDialog.xValue.text())
             y = int(novoPontoDialog.yValue.text())
-            novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]))
+            novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]), 0, 0)
             self.displayFile.append(novoPonto)
             self.indexes[0] += 1
             self.objectList.addItem(novoPonto.name)
@@ -253,6 +265,72 @@ class Ui(QtWidgets.QMainWindow):
             x, y = x//len(obj.points), y//len(obj.points)
             
             return (x, y)
+
+    def find_window_center(self):
+        x = (self.cgWindow.xMin + self.cgWindow.xMax)/2
+        y = (self.cgWindow.yMin + self.cgWindow.yMax)/2
+        return (x,y)
+
+    def makePPCmatrix(self):
+        center = self.find_window_center()
+        matTrans =  [   [1, 0, 0],
+                        [0, 1, 0],
+                        [-center[0], -center[1], 2]
+                    ]
+        vup = [self.cgWindow.xMin, self.cgWindow.yMax]
+        yaxis = [0, 1]
+
+        uv1 = vup / np.linalg.norm(vup)
+        uv2 = yaxis / np.linalg.norm(yaxis)
+        dot = np.dot(uv1, uv2)
+        angle = -np.arccos(dot)
+        print(angle)
+
+        matRot =    [   [np.cos(angle), -np.sin(angle), 0],
+                        [np.sin(angle), np.cos(angle), 0],
+                        [0, 0, 1]
+                    ]
+        
+        matPPC = np.dot(matTrans, matRot)
+        self.ppcMatrix = matPPC
+
+    def applyPPCmatrixOne(self, obj):
+        if obj.type == "Point":
+            P = [obj.x, obj.y, 1]
+            (X,Y,W) = np.dot(P, self.ppcMatrix)
+            obj.cn_x = X
+            obj.cn_y = Y
+        elif obj.type == "Line":
+            P1 = [obj.p1.x, obj.p1.y, 1]
+            P2 = [obj.p2.x, obj.p2.y, 1]
+            (X1, Y1, W1) = np.dot(P1, self.ppcMatrix)
+            (X2, Y2, W2) = np.dot(P2, self.ppcMatrix)
+            obj.p1.cn_x = X1
+            obj.p1.cn_y = Y1
+            obj.p2.cn_x = X2
+            obj.p2.cn_y = Y2
+        elif obj.type == "Polygon":
+            for p in obj.points:
+                P = (p.x, p.y, 1)
+                (X,Y,W) = np.matmul(P, self.ppcMatrix)
+                p.cn_x = X
+                p.cn_y = Y
+
+    def applyPPCmatrixAll(self):
+        for obj in self.displayFile:
+            self.applyPPCmatrixOne(obj)
+
+    def applyPPCmatrixWindow(self):
+        p1 = Point(self.cgWindow.xMin, self.cgWindow.yMin)
+        p2 = Point(self.cgWindow.xMin, self.cgWindow.yMax)
+        p3 = Point(self.cgWindow.xMax, self.cgWindow.yMax)
+        p4 = Point(self.cgWindow.xMax, self.cgWindow.yMin)
+        temp = Wireframe([p1, p2, p3, p4])
+        self.applyPPCmatrixOne(temp)
+        self.cgWindowPPC.xMin = temp.points[0].cn_x
+        self.cgWindowPPC.yMin = temp.points[0].cn_y
+        self.cgWindowPPC.xMax = temp.points[2].cn_x
+        self.cgWindowPPC.yMax = temp.points[2].cn_y
 
     def translacao(self, obj, Dx, Dy):
         if obj.type == "Point":
@@ -401,6 +479,8 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.xMin -= 10
         self.cgWindow.yMax += 10
         self.cgWindow.yMin -= 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def zoomViewportIn(self):
@@ -409,30 +489,40 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.xMin += 10
         self.cgWindow.yMax -= 10
         self.cgWindow.yMin += 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def panRight(self):
-        #clamp()
-        self.cgWindow.xMax += 100
-        self.cgWindow.xMin += 100
+        #PROVISORIO
+        self.cgWindow.xMax += 10
+        self.cgWindow.xMin += 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def panLeft(self):
-        #clamp()
-        self.cgWindow.xMax -= 100
-        self.cgWindow.xMin -= 100
+        #PROVISORIO
+        self.cgWindow.xMax -= 10
+        self.cgWindow.xMin -= 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
     
     def panUp(self):
-        #clamp()
-        self.cgWindow.yMax += 100
-        self.cgWindow.yMin += 100
+        #PROVISORIO
+        self.cgWindow.yMax += 10
+        self.cgWindow.yMin += 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def panDown(self):
-        #clamp()
-        self.cgWindow.yMax -= 100
-        self.cgWindow.yMin -= 100
+        #PROVISORIO
+        self.cgWindow.yMax -= 10
+        self.cgWindow.yMin -= 10
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def restoreOriginal(self):
@@ -445,7 +535,9 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.yMin = self.wSize[1]
         self.cgWindow.xMax = self.wSize[2]
         self.cgWindow.yMax = self.wSize[3]
-        
+
+        self.makePPCmatrix()
+        self.applyPPCmatrixWindow()
         self.drawAll()
 
     def printalista(self):
