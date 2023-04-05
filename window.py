@@ -9,6 +9,7 @@ from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 from transformacao import UiTransforma
+from rotwindow import UiRotWin
 
 def clamp(n, inferior, superior):
     return max(inferior, min(n, superior))
@@ -35,6 +36,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.vpSize = [0, 0, 400, 400]
         self.wSize = [0, 0, 400, 400]
+        self.windowAngle = 0
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
@@ -84,6 +86,8 @@ class Ui(QtWidgets.QMainWindow):
         self.panDownButton.clicked.connect(self.panDown)
 
         self.transButton.clicked.connect(self.transformaWindow)
+
+        self.rotWindowButton.clicked.connect(self.rodaWindow)
 
         self.RestoreButtom.clicked.connect(self.restoreOriginal)
 
@@ -242,9 +246,22 @@ class Ui(QtWidgets.QMainWindow):
                              transformaDialog.rotPoint.isChecked(),
                              transformaDialog.rotPointX.text(),
                              transformaDialog.rotPointY.text())
+                print("DEPOIS DE SAIR DA ROTAÇÃO: ")
+                print("{}, {}\n{}, {}".format(obj.p1.x, obj.p1.y, obj.p2.x, obj.p2.y))
+                print("------------------")
                 self.status.addItem(obj.name + " rotacionado com sucesso.")
                 self.drawAll()
                 self.status.addItem(obj.name + " transformado com sucesso.")
+
+    def rodaWindow(self):
+        rotDialog = UiRotWin()
+        if rotDialog.exec_():
+            if rotDialog.rot_angulo.text():
+                ang = int(rotDialog.rot_angulo.text())
+                self.windowAngle -= ang
+                self.makePPCmatrix()
+                self.applyPPCmatrixWindow()
+                self.drawAll()
     
     def find_center(self, obj):
         if obj.type == "Point":
@@ -272,26 +289,32 @@ class Ui(QtWidgets.QMainWindow):
         return (x,y)
 
     def makePPCmatrix(self):
+        width = self.cgWindow.xMax - self.cgWindow.xMin
+        height = self.cgWindow.yMax - self.cgWindow.yMin
         center = self.find_window_center()
         matTrans =  [   [1, 0, 0],
                         [0, 1, 0],
-                        [-center[0], -center[1], 2]
+                        [-center[0], -center[1], 1]
                     ]
-        vup = [self.cgWindow.xMin, self.cgWindow.yMax]
-        yaxis = [0, 1]
 
-        uv1 = vup / np.linalg.norm(vup)
-        uv2 = yaxis / np.linalg.norm(yaxis)
-        dot = np.dot(uv1, uv2)
-        angle = -np.arccos(dot)
-        print(angle)
+        y = [0, 1]
+        vup = [self.cgWindow.xMin, self.cgWindow.xMax]
+        vupnorm = vup / np.linalg.norm(vup)
+        ang  = np.arccos(np.clip(np.dot(y, vupnorm), -1.0, 1.0))
+        print(ang)
 
-        matRot =    [   [np.cos(angle), -np.sin(angle), 0],
-                        [np.sin(angle), np.cos(angle), 0],
+        matRot =    [   [np.cos(ang), -np.sin(ang), 0],
+                        [np.sin(ang), np.cos(ang), 0],
                         [0, 0, 1]
                     ]
         
-        matPPC = np.dot(matTrans, matRot)
+        matScale =  [   [2/width,   0,          0],
+                        [0,         2/height,   1],
+                        [0,         0,          1]
+
+                    ]
+        
+        matPPC = np.dot(np.dot(matTrans, matRot), matScale)
         self.ppcMatrix = matPPC
 
     def applyPPCmatrixOne(self, obj):
@@ -309,6 +332,8 @@ class Ui(QtWidgets.QMainWindow):
             obj.p1.cn_y = Y1
             obj.p2.cn_x = X2
             obj.p2.cn_y = Y2
+            print("N: {}, {}".format(obj.p1.x, obj.p1.y))
+            print("PPC: {}, {}".format(obj.p1.cn_x, obj.p1.cn_y))
         elif obj.type == "Polygon":
             for p in obj.points:
                 P = (p.x, p.y, 1)
@@ -327,10 +352,27 @@ class Ui(QtWidgets.QMainWindow):
         p4 = Point(self.cgWindow.xMax, self.cgWindow.yMin)
         temp = Wireframe([p1, p2, p3, p4])
         self.applyPPCmatrixOne(temp)
-        self.cgWindowPPC.xMin = temp.points[0].cn_x
+
+        xs = []
+        ys = []
+        for point in temp.points:
+            xs.append(point.cn_x)
+            ys.append(point.cn_y)
+
+        xmin = min(xs)
+        ymin = min(ys)
+        xmax = max(xs)
+        ymax = max(ys)
+
+        """ self.cgWindowPPC.xMin = temp.points[0].cn_x
         self.cgWindowPPC.yMin = temp.points[0].cn_y
         self.cgWindowPPC.xMax = temp.points[2].cn_x
-        self.cgWindowPPC.yMax = temp.points[2].cn_y
+        self.cgWindowPPC.yMax = temp.points[2].cn_y """
+
+        self.cgWindowPPC.xMin = xmin
+        self.cgWindowPPC.yMin = ymin
+        self.cgWindowPPC.xMax = xmax
+        self.cgWindowPPC.yMax = ymax
 
     def translacao(self, obj, Dx, Dy):
         if obj.type == "Point":
@@ -416,8 +458,11 @@ class Ui(QtWidgets.QMainWindow):
         self.translacao(obj, dist[0], dist[1])
 
     def rotacao(self, obj, degree, toOrigin, toObject, toPoint, pX, pY):
+        degree = np.deg2rad(degree)
         centroInicial = self.find_center(obj)
-        
+        print(toOrigin)
+        print(toObject)
+        print(toPoint)
         if toObject:
             self.translacao(obj, -centroInicial[0], -centroInicial[1])
         elif toPoint:
@@ -447,9 +492,17 @@ class Ui(QtWidgets.QMainWindow):
             (X1, Y1, W1) = np.matmul(P1, T)
             (X2, Y2, W2) = np.matmul(P2, T)
             obj.p1.x = X1
+            print(obj.p1.x)
             obj.p1.y = Y1
+            print(obj.p1.y)
             obj.p2.x = X2
+            print(obj.p2.x)
             obj.p2.y = Y2
+            print(obj.p2.y)
+            
+            print("ANTES DE SAIR DA ROTAÇÃO: ")
+            print("{}, {}\n{}, {}".format(obj.p1.x, obj.p1.y, obj.p2.x, obj.p2.y))
+            print("------------------")
 
         elif obj.type == "Polygon":
             print(toOrigin)
