@@ -297,11 +297,14 @@ class Ui(QtWidgets.QMainWindow):
                         [-center[0], -center[1], 1]
                     ]
 
-        y = [0, 1]
+        """ y = [0, 1]
         vup = [self.cgWindow.xMin, self.cgWindow.xMax]
         vupnorm = vup / np.linalg.norm(vup)
         ang  = np.arccos(np.clip(np.dot(y, vupnorm), -1.0, 1.0))
-        print(ang)
+        print("ANG: ")
+        print(ang) """
+
+        ang = np.deg2rad(self.windowAngle)
 
         matRot =    [   [np.cos(ang), -np.sin(ang), 0],
                         [np.sin(ang), np.cos(ang), 0],
@@ -547,33 +550,58 @@ class Ui(QtWidgets.QMainWindow):
         self.drawAll()
 
     def panRight(self):
-        #PROVISORIO
-        self.cgWindow.xMax += 10
-        self.cgWindow.xMin += 10
+        v = [1, 0]
+        ang = np.deg2rad(self.windowAngle)
+        x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
+        y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
+        print([x, y])
+        self.cgWindow.xMax += x * 10
+        self.cgWindow.xMin += x * 10
+        self.cgWindow.yMax += y * 10
+        self.cgWindow.yMin += y * 10
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
         self.drawAll()
 
     def panLeft(self):
-        #PROVISORIO
-        self.cgWindow.xMax -= 10
-        self.cgWindow.xMin -= 10
+        v = [-1, 0]
+        ang = np.deg2rad(self.windowAngle)
+        x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
+        y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
+        print([x, y])
+        self.cgWindow.xMax += x * 10
+        self.cgWindow.xMin += x * 10
+        self.cgWindow.yMax += y * 10
+        self.cgWindow.yMin += y * 10
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
         self.drawAll()
     
     def panUp(self):
         #PROVISORIO
-        self.cgWindow.yMax += 10
-        self.cgWindow.yMin += 10
+        v = [0, 1]
+        ang = np.deg2rad(self.windowAngle)
+        x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
+        y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
+        print([x, y])
+        self.cgWindow.xMax += x * 10
+        self.cgWindow.xMin += x * 10
+        self.cgWindow.yMax += y * 10
+        self.cgWindow.yMin += y * 10
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
         self.drawAll()
 
     def panDown(self):
-        #PROVISORIO
-        self.cgWindow.yMax -= 10
-        self.cgWindow.yMin -= 10
+        v = [0, -1]
+        ang = np.deg2rad(self.windowAngle)
+        x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
+        y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
+        print([x, y])
+        self.cgWindow.xMax += x * 10
+        self.cgWindow.xMin += x * 10
+        self.cgWindow.yMax += y * 10
+        self.cgWindow.yMin += y * 10
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
         self.drawAll()
@@ -588,6 +616,8 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.yMin = self.wSize[1]
         self.cgWindow.xMax = self.wSize[2]
         self.cgWindow.yMax = self.wSize[3]
+
+        self.windowAngle = 0
 
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
