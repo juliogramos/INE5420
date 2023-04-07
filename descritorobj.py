@@ -1,24 +1,85 @@
 import pathlib
 from PyQt5 import QtGui, QtCore
 
-from object import Wireframe
+from object import Point, Line, Wireframe
 
 class DescritorOBJ:
-    def __init__(
-        self, file_path, wireframe_index, normalization_values, window_transformations
-    ):
-        self.vertices = []
-        self.mtl = None
-        self.mtl_dict = {}
-        self.mtl_parsing = ""
-        self.obj_parsing = ""
-        self.wireframes = []
-        self.wireframe_index = wireframe_index
-        self.normalization_values = normalization_values
-        self.window_transformations = window_transformations
-        self.load(file_path)
+    def __init__(self):
+        pass
 
-    def vertice_handler(self, args):
+    def parseObj(self, file_path, parse_dict):
+        with open(file_path) as file:
+            sequence = []
+            for line in file.readlines():
+                split = line.split()
+                try:
+                    type = split[0]
+                    args = split[1:]
+                    sequence.append((type, args))
+                except IndexError:
+                    # blank line
+                    pass
+    
+    def parseMtl(self, file_path):
+        sequence = []
+        with open(file_path) as file:
+            for line in file.readlines():
+                split = line.split()
+                try:
+                    type = split[0]
+                    args = split[1:]
+                    sequence.append((type, args))
+                except IndexError:
+                    # blank line
+                    pass
+        
+        cores = {}
+        currentMtl = ""
+        for e in sequence:
+            if e[0] == "newmtl":
+                cores[e[1][0]] = None
+                currentMtl = e[0]
+            elif e[0] == "Kd":
+                r, g, b = e[1]
+                r = round(float(r) * 255)
+                g = round(float(g) * 255)
+                b = round(float(b) * 255)
+                cores[currentMtl] = (r,g,b)
+        return cores
+
+        
+
+
+    def processObjects(self, sequence):
+        """ commands = {
+                "v": [],
+                "o": [],
+                "usemtl": [],
+                "mtlib": [],
+                "p": [],
+                "f": [],
+                "l": []
+            } """
+        
+        verts = []
+        prev = ""
+        vertsEnded = False
+        objects = []
+
+        for e in sequence:
+            if e[0] == "v":
+                (x, y, _) = e[1]
+                newVert = Point(x, y)
+                verts.append(newVert)
+            elif e[0] == "o":
+                pass
+        prev = e[0]
+
+        #Tratar todos os comandos
+        #Talvez mudar os obj para salvar a cor
+        #Arrumar um jeito de retornar a cor deles
+
+    """def vertice_handler(self, args):
         x = float(args[0])
         y = float(args[1])
         # z = float(args[2])
@@ -100,5 +161,5 @@ class DescritorOBJ:
                     parse_dict[statement](self, args)
                 except IndexError:
                     # blank line
-                    pass
+                    pass """
 
