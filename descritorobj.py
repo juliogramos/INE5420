@@ -1,5 +1,7 @@
 import pathlib
 from PyQt5 import QtGui, QtCore
+import PyQt5
+from PyQt5.QtCore import Qt
 
 from object import Point, Line, Wireframe
 
@@ -44,35 +46,81 @@ class DescritorOBJ:
                 r = round(float(r) * 255)
                 g = round(float(g) * 255)
                 b = round(float(b) * 255)
-                cores[currentMtl] = (r,g,b)
+                cores[currentMtl] = QtGui.QColor(r,g,b)
         return cores
 
         
 
 
     def processObjects(self, sequence):
-        """ commands = {
-                "v": [],
-                "o": [],
-                "usemtl": [],
-                "mtlib": [],
-                "p": [],
-                "f": [],
-                "l": []
-            } """
-        
+        commands = {
+                "v": [], # ok
+                "o": [], # ok
+                "usemtl": [], # ok
+                "mtlib": [],   
+                "p": [], #ok
+                "f": [], #ok
+                "l": [] #ok
+            }
+        obj_name = '' 
         verts = []
         prev = ""
         vertsEnded = False
         objects = []
-
+        mtl = ''
+        cor = QtGui.QColor(0, 0, 0)
         for e in sequence:
             if e[0] == "v":
                 (x, y, _) = e[1]
                 newVert = Point(x, y)
                 verts.append(newVert)
+            
             elif e[0] == "o":
-                pass
+                obj_name = e[1]
+            
+            
+            elif e[0] == "usemtl":
+                mtl = e[1]
+                file_path = str(pathlib.Path().absolute() / "obj" / mtl)
+                cor = self.parseMtl(file_path)
+
+            elif e[0] == "mtlib":
+                file = e[1]
+                file_path = str(pathlib.Path().absolute() / "obj" / file)
+                self.parseObj(file_path, commands)
+
+            elif e[0] == "p" or e[0] == "l":
+                points = []
+                for vertex in e[1]:
+                    if vertex[0] == "-":
+                        index = int(vertex)
+                        points.append(verts[index])
+                    else:
+                        index = int(vertex) - 1
+                        points.append(verts[index])
+                    if mtl == '':
+                        mtl = QtGui.QColor(255, 0, 0)
+
+                wireframe = Wireframe(points, obj_name)
+        
+            elif e[0] == "f":
+                points = []
+                
+                for i in e[1]:
+                    
+                    raw_idx = e[1].split("/")[0]
+                    if raw_idx[0] == "-":
+                    
+                        index = int(raw_idx)
+                        points.append(verts[index])
+                    
+                    else:
+                        
+                        index = int(raw_idx) - 1
+                        points.append(verts[index])
+                
+                wireframe = Wireframe(points, obj_name)
+        
         prev = e[0]
 
         #Tratar todos os comandos
@@ -148,8 +196,6 @@ class DescritorOBJ:
 
     mtl_parser = {"newmtl": newmtl_handler, "Kd": Kd_handler}
 
-    def load(self, file_path):
-        self.parse_file(file_path, self.obj_parser)
 
     def parse_file(self, file_path, parse_dict):
         with open(file_path) as file:
