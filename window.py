@@ -10,9 +10,7 @@ from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
-
-def clamp(n, inferior, superior):
-    return max(inferior, min(n, superior))
+from descritorobj import DescritorOBJ
 
 @dataclass
 class Container:
@@ -46,6 +44,8 @@ class Ui(QtWidgets.QMainWindow):
                                 [0, 0, 0],
                                 [0, 0, 0]
                             ]
+        
+        self.descObj = DescritorOBJ()
         
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
@@ -90,6 +90,8 @@ class Ui(QtWidgets.QMainWindow):
         self.rotWindowButton.clicked.connect(self.rodaWindow)
 
         self.RestoreButtom.clicked.connect(self.restoreOriginal)
+
+        self.loadButton.clicked.connect(self.loadObjs)
 
         self.limpa.clicked.connect(self.drawAll)
 
@@ -621,6 +623,12 @@ class Ui(QtWidgets.QMainWindow):
 
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
+        self.drawAll()
+
+    def loadObjs(self):
+        newObjs = self.descObj.load("teste.obj")
+        for obj in newObjs:
+            self.displayFile.append(obj)
         self.drawAll()
 
     def printalista(self):

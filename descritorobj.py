@@ -2,16 +2,28 @@ import pathlib
 from PyQt5 import QtGui, QtCore
 import PyQt5
 from PyQt5.QtCore import Qt
+from dataclasses import dataclass
 
 from object import Point, Line, Wireframe
+
+@dataclass
+class PreObject:
+    name: str = ""
+    color: tuple = (0,0,0)
 
 class DescritorOBJ:
     def __init__(self):
         pass
 
-    def parseObj(self, file_path, parse_dict):
-        with open(file_path) as file:
-            sequence = []
+    def load(self, file_path):
+        sequence = self.parseObj(file_path)
+        print(sequence)
+        return self.processObjects(sequence)
+
+    def parseObj(self, file_path):
+        path = str(pathlib.Path().absolute() / "obj" / file_path)
+        sequence = []
+        with open(path) as file:
             for line in file.readlines():
                 split = line.split()
                 try:
@@ -21,6 +33,7 @@ class DescritorOBJ:
                 except IndexError:
                     # blank line
                     pass
+        return sequence
     
     def parseMtl(self, file_path):
         sequence = []
@@ -40,13 +53,13 @@ class DescritorOBJ:
         for e in sequence:
             if e[0] == "newmtl":
                 cores[e[1][0]] = None
-                currentMtl = e[0]
+                currentMtl = e[1][0]
             elif e[0] == "Kd":
                 r, g, b = e[1]
                 r = round(float(r) * 255)
                 g = round(float(g) * 255)
                 b = round(float(b) * 255)
-                cores[currentMtl] = QtGui.QColor(r,g,b)
+                cores[currentMtl] = (r,g,b)
         return cores
 
         
@@ -62,70 +75,59 @@ class DescritorOBJ:
                 "f": [], #ok
                 "l": [] #ok
             }
-        obj_name = '' 
         verts = []
-        prev = ""
-        vertsEnded = False
+        objIndex = -1
+        preobjects = []
+        cores = None
         objects = []
-        mtl = ''
-        cor = QtGui.QColor(0, 0, 0)
         for e in sequence:
             if e[0] == "v":
                 (x, y, _) = e[1]
-                newVert = Point(x, y)
+                newVert = Point(int(float(x)), int(float(y)))
                 verts.append(newVert)
             
             elif e[0] == "o":
-                obj_name = e[1]
-            
+                objIndex += 1
+                newObj = PreObject(e[1])
+                preobjects.append(newObj)
             
             elif e[0] == "usemtl":
-                mtl = e[1]
-                file_path = str(pathlib.Path().absolute() / "obj" / mtl)
-                cor = self.parseMtl(file_path)
+               cor = cores[e[1][0]]
+               preobjects[objIndex].color = cor
 
             elif e[0] == "mtlib":
-                file = e[1]
+                file = e[1][0]
                 file_path = str(pathlib.Path().absolute() / "obj" / file)
-                self.parseObj(file_path, commands)
+                cores = self.parseMtl(file_path)
+                print(cores)
 
-            elif e[0] == "p" or e[0] == "l":
-                points = []
-                for vertex in e[1]:
-                    if vertex[0] == "-":
-                        index = int(vertex)
-                        points.append(verts[index])
-                    else:
-                        index = int(vertex) - 1
-                        points.append(verts[index])
-                    if mtl == '':
-                        mtl = QtGui.QColor(255, 0, 0)
+            elif e[0] == "p":
+                index = int(e[1][0])
+                newPoint = verts[index-1]
+                newPoint.name = preobjects[objIndex].name
+                newPoint.color = preobjects[objIndex].color
+                objects.append(newPoint)
 
-                wireframe = Wireframe(points, obj_name)
-        
+            elif e[0] == "l":
+                points = e[1]
+                p1 = verts[int(points[0])-1]
+                p2 = verts[int(points[1])-1]
+                newLine = Line(p1, p2, preobjects[objIndex].name, preobjects[objIndex].color)
+                objects.append(newLine)
+
             elif e[0] == "f":
-                points = []
-                
-                for i in e[1]:
-                    
-                    raw_idx = e[1].split("/")[0]
-                    if raw_idx[0] == "-":
-                    
-                        index = int(raw_idx)
-                        points.append(verts[index])
-                    
-                    else:
-                        
-                        index = int(raw_idx) - 1
-                        points.append(verts[index])
-                
-                wireframe = Wireframe(points, obj_name)
-        
-        prev = e[0]
+                print(e[1])
+                points = e[1]
+                pointList = []
+                for p in points:
+                    realPoint = verts[int(p)-1]
+                    pointList.append(realPoint)
+                newPoly = Wireframe(pointList, preobjects[objIndex].name, preobjects[objIndex].color)
+                objects.append(newPoly)
 
-        #Tratar todos os comandos
-        #Talvez mudar os obj para salvar a cor
-        #Arrumar um jeito de retornar a cor deles
+            else:
+                print("COMANDO NAO RECONHECIDO")
+        return objects
 
     """def vertice_handler(self, args):
         x = float(args[0])
