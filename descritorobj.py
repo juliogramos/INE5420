@@ -89,8 +89,10 @@ class DescritorOBJ:
             elif e[0] == "o":
                 objIndex += 1
                 newObj = PreObject(e[1])
+                newObj.name = newObj.name[0]
                 preobjects.append(newObj)
-            
+                print(newObj.name)
+
             elif e[0] == "usemtl":
                cor = cores[e[1][0]]
                preobjects[objIndex].color = cor

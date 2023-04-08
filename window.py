@@ -125,6 +125,7 @@ class Ui(QtWidgets.QMainWindow):
     def drawAll(self):
         self.mainLabel.pixmap().fill(Qt.white)
         for object in self.displayFile:
+            print(object)
             self.drawOne(object)
         self.update()
 
@@ -184,6 +185,7 @@ class Ui(QtWidgets.QMainWindow):
         if novoPoligonoDialog.exec_() and novoPoligonoDialog.listaPontos:
             print("Entrou poligono")
             newPoly = Wireframe(novoPoligonoDialog.polyList, "Polígono {}".format(self.indexes[2]))
+            print(newPoly)
             self.displayFile.append(newPoly)
             self.indexes[2] += 1
             self.objectList.addItem(newPoly.name)
@@ -628,6 +630,7 @@ class Ui(QtWidgets.QMainWindow):
         newObjs = self.descObj.load("teste.obj")
         for obj in newObjs:
             self.displayFile.append(obj)
+            self.objectList.addItem(obj.name)
         self.drawAll()
 
     def printalista(self):
