@@ -97,6 +97,11 @@ class Ui(QtWidgets.QMainWindow):
 
     def drawOne(self, object):
         self.applyPPCmatrixOne(object)
+
+        self.pen = QtGui.QPen(QtGui.QColor(object.color[0], object.color[1], object.color[2], 255))
+        self.pen.setWidth(5)
+        self.painter.setPen(self.pen)
+        
         if object.type == "Point":
             (x, y) = self.viewportTransformation(object)
             print(x)
@@ -138,10 +143,10 @@ class Ui(QtWidgets.QMainWindow):
             self.objectList.addItem(novoPonto.name)
             #novoPonto.draw(self.painter)
             if novoPontoDialog.rValue.text() and novoPontoDialog.gValue.text() and novoPontoDialog.bValue.text():
-            
-                self.pen = QtGui.QPen((QtGui.QColor(int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255))) 
-                self.pen.setWidth(5)
-                self.painter.setPen(self.pen)
+                novoPonto.color = (QtGui.QColor(int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255))
+                #self.pen = QtGui.QPen((QtGui.QColor(int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255))) 
+                #self.pen.setWidth(5)
+                #self.painter.setPen(self.pen)
             self.drawOne(novoPonto)
 
             self.status.addItem("Ponto adicionado com sucesso.")
@@ -164,10 +169,7 @@ class Ui(QtWidgets.QMainWindow):
             self.indexes[1] += 1
             self.objectList.addItem(newLine.name)
             if novaLinhaDialog.rValue.text() and novaLinhaDialog.gValue.text() and novaLinhaDialog.bValue.text():
-            
-                self.pen = QtGui.QPen((QtGui.QColor(int(novaLinhaDialog.rValue.text()), int(novaLinhaDialog.gValue.text()), int(novaLinhaDialog.bValue.text()), 255))) 
-                self.pen.setWidth(5)
-                self.painter.setPen(self.pen)
+                newLine.color = (QtGui.QColor(int(novaLinhaDialog.rValue.text()), int(novaLinhaDialog.gValue.text()), int(novaLinhaDialog.bValue.text()), 255))
             self.drawOne(newLine)
 
             self.status.addItem("Linha adicionada com sucesso.")
@@ -186,10 +188,7 @@ class Ui(QtWidgets.QMainWindow):
             self.indexes[2] += 1
             self.objectList.addItem(newPoly.name)
             if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
-            
-                self.pen = QtGui.QPen((QtGui.QColor(int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))) 
-                self.pen.setWidth(5)
-                self.painter.setPen(self.pen)
+                newPoly.color = (QtGui.QColor(int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
             self.drawOne(newPoly)
             self.status.addItem("Polígono adicionado com sucesso.")
         else:
