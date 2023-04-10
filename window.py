@@ -33,12 +33,13 @@ class Ui(QtWidgets.QMainWindow):
         self.displayFile = []
 
         self.vpSize = [0, 0, 400, 400]
-        self.wSize = [0, 0, 400, 400]
+        self.wSize = [0, 0, 400, 300]
         self.windowAngle = 0
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
         self.cgWindowPPC = Container(-1,-1,1,1)
+        self.cgSubcanvas = Container(20, 20, 380, 380)
         
         self.ppcMatrix =    [   [0, 0, 0],
                                 [0, 0, 0],
@@ -49,6 +50,8 @@ class Ui(QtWidgets.QMainWindow):
         
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
+
+        self.drawBorder()
 
         #self.draw_something()
     
@@ -95,18 +98,26 @@ class Ui(QtWidgets.QMainWindow):
 
         self.limpa.clicked.connect(self.drawAll)
 
+    def drawBorder(self):
+        self.pen = QtGui.QPen(Qt.red)
+        self.pen.setWidth(5)
+        self.painter.setPen(self.pen)
+
+        self.painter.drawLine(20, 20, 380, 20)
+        self.painter.drawLine(380, 20, 380, 380)
+        self.painter.drawLine(380, 380, 20, 380)
+        self.painter.drawLine(20, 380, 20, 20)
+
     def drawOne(self, object):
         self.applyPPCmatrixOne(object)
-
         self.pen = QtGui.QPen(QtGui.QColor(object.color[0], object.color[1], object.color[2], 255))
         self.pen.setWidth(5)
         self.painter.setPen(self.pen)
         
         if object.type == "Point":
             (x, y) = self.viewportTransformation(object)
-            print(x)
-            print(y)
-            self.painter.drawPoint(x, y)
+            if self.pointClipping(x,y):
+                self.painter.drawPoint(x, y)
         elif object.type == "Line":
             (x1, y1) = self.viewportTransformation(object.p1)
             (x2,y2) = self.viewportTransformation(object.p2)
@@ -123,30 +134,45 @@ class Ui(QtWidgets.QMainWindow):
             self.painter.drawLine(ps[-1][0], ps[-1][1], ps[0][0], ps[0][1])
 
     def drawAll(self):
+        #Limpa
         self.mainLabel.pixmap().fill(Qt.white)
+
+        #Borda
+        self.drawBorder()
+
+        #Desenha tudo
         for object in self.displayFile:
             self.drawOne(object)
         self.update()
+
+    def pointClipping(self, x, y):
+        xIn = False
+        yIn = False
+
+        if x <= self.cgSubcanvas.xMax and self.cgSubcanvas.xMin <= x:
+            xIn = True
+
+        if y <= self.cgSubcanvas.yMax and self.cgSubcanvas.yMin <= y:
+            yIn = True
+
+        print(x, y, self.cgSubcanvas.xMax, self.cgSubcanvas.xMin)
+        return xIn and yIn
 
     #FUNCOES DE JANELA
 
     def novoPontoWindow(self):
         novoPontoDialog = UiPonto()
         if novoPontoDialog.exec_() and novoPontoDialog.xValue.text() and novoPontoDialog.yValue.text():
-            print("Entrou ponto")
-            print(self.pen.color())
             x = int(novoPontoDialog.xValue.text())
             y = int(novoPontoDialog.yValue.text())
             novoPonto = Point(x, y, "Ponto {}".format(self.indexes[0]), 0, 0)
             self.displayFile.append(novoPonto)
             self.indexes[0] += 1
             self.objectList.addItem(novoPonto.name)
-            #novoPonto.draw(self.painter)
             if novoPontoDialog.rValue.text() and novoPontoDialog.gValue.text() and novoPontoDialog.bValue.text():
-                novoPonto.color = (QtGui.QColor(int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255))
-                #self.pen = QtGui.QPen((QtGui.QColor(int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255))) 
-                #self.pen.setWidth(5)
-                #self.painter.setPen(self.pen)
+                novoPonto.color = (int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255)
+            else:
+                novoPonto.color = (0,0,0,255)
             self.drawOne(novoPonto)
 
             self.status.addItem("Ponto adicionado com sucesso.")
@@ -169,7 +195,9 @@ class Ui(QtWidgets.QMainWindow):
             self.indexes[1] += 1
             self.objectList.addItem(newLine.name)
             if novaLinhaDialog.rValue.text() and novaLinhaDialog.gValue.text() and novaLinhaDialog.bValue.text():
-                newLine.color = (QtGui.QColor(int(novaLinhaDialog.rValue.text()), int(novaLinhaDialog.gValue.text()), int(novaLinhaDialog.bValue.text()), 255))
+                newLine.color = ((int(novaLinhaDialog.rValue.text()), int(novaLinhaDialog.gValue.text()), int(novaLinhaDialog.bValue.text()), 255))
+            else:
+                newLine.color = (0,0,0,255)
             self.drawOne(newLine)
 
             self.status.addItem("Linha adicionada com sucesso.")
@@ -188,7 +216,9 @@ class Ui(QtWidgets.QMainWindow):
             self.indexes[2] += 1
             self.objectList.addItem(newPoly.name)
             if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
-                newPoly.color = (QtGui.QColor(int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+                newPoly.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+            else:
+                newPoly.color = (0,0,0,255)
             self.drawOne(newPoly)
             self.status.addItem("Polígono adicionado com sucesso.")
         else:
