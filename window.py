@@ -123,7 +123,10 @@ class Ui(QtWidgets.QMainWindow):
             (x2,y2) = self.viewportTransformation(object.p2)
             print(f"ponto 1 ({x1}, {y1})")
             print(f"ponto 2 ({x2}, {y2})")
-            self.painter.drawLine(x1, y1, x2, y2)
+            clipRes = self.csLineClipping(x1, y1, x2, y2)
+            if clipRes[0]:
+                self.painter.drawLine(int(clipRes[1]), int(clipRes[2]), int(clipRes[3]), int(clipRes[4]))
+            #self.painter.drawLine(x1, y1, x2, y2)
         elif object.type == "Polygon":
             ps = []
             for p in object.points:
@@ -158,6 +161,77 @@ class Ui(QtWidgets.QMainWindow):
 
         print(x, y, self.cgSubcanvas.xMax, self.cgSubcanvas.xMin)
         return xIn and yIn
+    
+    def rcFinder(self, x, y):
+        res = 0
+        if y > self.cgSubcanvas.yMax:
+            res += 8
+            #Cima
+        elif y < self.cgSubcanvas.yMin:
+            #baixo
+            res += 4
+
+        if x < self.cgSubcanvas.xMin:
+            #Esquerda
+            res += 1
+        elif x > self.cgSubcanvas.xMax:
+            #Direita
+            res += 2
+        return res
+
+    def csLineClipping(self, ox1, oy1, ox2, oy2):
+        #RC[0] = Acima      (8)
+        #RC[1] = Abaixo     (4)
+        #RC[2] = Direita    (2)
+        #RC[3] = Esquerda   (1)
+
+        x1 = ox1
+        y1 = oy1
+
+        x2 = ox2
+        y2 = oy2
+
+        rc1 = 0
+        rc2 = 0
+        
+        rc1 = rc1 | self.rcFinder(x1, y1)
+        rc2 = rc2 | self.rcFinder(x2, y2)
+
+        while True:
+            if rc1 == rc2 and rc1 == 0:
+                return (True, x1, y1, x2, y2)
+            elif rc1 & rc2 != 0:
+                return (False, 0, 0, 0, 0)
+            
+            intX = 0
+            intY = 0
+
+            if rc1 != 0:
+                rcMax = rc1
+            else:
+                rcMax = rc2
+
+            if rcMax & 8  == 8:
+                intX = x1 + (x2 - x1) * (self.cgSubcanvas.yMax - y1) / (y2 - y1)
+                intY = self.cgSubcanvas.yMax
+            elif rcMax & 4 == 4:
+                intX = x1 + (x2 - x1) * (self.cgSubcanvas.yMin - y1) / (y2 - y1)
+                intY = self.cgSubcanvas.yMin
+            elif rcMax & 2 == 2:
+                intY = y1 + (y2 - y1) * (self.cgSubcanvas.xMax - x1) / (x2 - x1)
+                intX = self.cgSubcanvas.xMax
+            elif rcMax & 1 == 1:
+                intY = y1 + (y2 - y1) * (self.cgSubcanvas.xMin - x1) / (x2 - x1)
+                intX = self.cgSubcanvas.xMin
+
+            if rcMax == rc1:
+                x1 = intX
+                y1 = intY
+                rc1 = self.rcFinder(x1, y1)
+            else:
+                x2 = intX
+                y2 = intY
+                rc2 = self.rcFinder(x2, y2)
 
     #FUNCOES DE JANELA
 
@@ -564,23 +638,24 @@ class Ui(QtWidgets.QMainWindow):
 
     def zoomViewportOut(self):
         #clamp()
-        self.cgWindow.xMax += 10
-        self.cgWindow.xMin -= 10
-        self.cgWindow.yMax += 10
-        self.cgWindow.yMin -= 10
-        self.makePPCmatrix()
-        self.applyPPCmatrixWindow()
-        self.drawAll()
+            self.cgWindow.xMax += 10
+            self.cgWindow.xMin -= 10
+            self.cgWindow.yMax += 10
+            self.cgWindow.yMin -= 10
+            self.makePPCmatrix()
+            self.applyPPCmatrixWindow()
+            self.drawAll()
 
     def zoomViewportIn(self):
         #clamp()
-        self.cgWindow.xMax -= 10
-        self.cgWindow.xMin += 10
-        self.cgWindow.yMax -= 10
-        self.cgWindow.yMin += 10
-        self.makePPCmatrix()
-        self.applyPPCmatrixWindow()
-        self.drawAll()
+        if self.cgWindow.xMax - 10 > self.cgWindow.xMin + 10 and self.cgWindow.yMax - 10 > self.cgWindow.yMin + 10:
+            self.cgWindow.xMax -= 10
+            self.cgWindow.xMin += 10
+            self.cgWindow.yMax -= 10
+            self.cgWindow.yMin += 10
+            self.makePPCmatrix()
+            self.applyPPCmatrixWindow()
+            self.drawAll()
 
     def panRight(self):
         v = [1, 0]
