@@ -96,8 +96,6 @@ class Ui(QtWidgets.QMainWindow):
 
         self.loadButton.clicked.connect(self.loadObjs)
 
-        self.limpa.clicked.connect(self.drawAll)
-
     def drawBorder(self):
         self.pen = QtGui.QPen(Qt.red)
         self.pen.setWidth(5)
@@ -123,7 +121,11 @@ class Ui(QtWidgets.QMainWindow):
             (x2,y2) = self.viewportTransformation(object.p2)
             print(f"ponto 1 ({x1}, {y1})")
             print(f"ponto 2 ({x2}, {y2})")
-            clipRes = self.csLineClipping(x1, y1, x2, y2)
+            if self.csCheck.isChecked():
+                clipRes = self.csLineClipping(x1, y1, x2, y2)
+            else:
+                clipRes = self.lbLineClipping(x1, y1, x2, y2)
+            print(clipRes)
             if clipRes[0]:
                 self.painter.drawLine(int(clipRes[1]), int(clipRes[2]), int(clipRes[3]), int(clipRes[4]))
             #self.painter.drawLine(x1, y1, x2, y2)
@@ -185,6 +187,8 @@ class Ui(QtWidgets.QMainWindow):
         #RC[2] = Direita    (2)
         #RC[3] = Esquerda   (1)
 
+        print("CLIPPANDO POR COHEN SUTHERLAND")
+
         x1 = ox1
         y1 = oy1
 
@@ -232,6 +236,84 @@ class Ui(QtWidgets.QMainWindow):
                 x2 = intX
                 y2 = intY
                 rc2 = self.rcFinder(x2, y2)
+
+    def lbLineClipping(self, ox1, oy1, ox2, oy2):
+        print("CLIPPANDO POR LIANG BARSKY")
+        
+        x1 = ox1
+        y1 = oy1
+        x2 = ox2
+        y2 = oy2
+
+        p1 = -(x2 - x1)
+        p2 = -p1
+        p3 = -(y2 - y1)
+        p4 = -p3
+
+        q1 = x1 - self.cgSubcanvas.xMin
+        q2 = self.cgSubcanvas.xMax - x1
+        q3 = y1 - self.cgSubcanvas.yMin
+        q4 = self.cgSubcanvas.yMax - y1
+
+        ps = [p1, p2, p3, p4]
+        qs = [q1, q2, q3, q4]
+
+        #Checa fora dos limites
+        pcond = False
+        qcond = False
+        for p in ps:
+            if p == 0:
+                pcond = True
+                break
+        if pcond:
+            for q in qs:
+                if q < 0:
+                    qcond = True
+        if qcond:
+            print("qcond foi")
+            return (False, 0, 0, 0, 0)
+        
+        #Contas
+        negs = []
+        for i in range(4):
+            if ps[i] < 0:
+                negs.append((ps[i], i))
+
+        poss = []
+        for i in range(4):
+            if ps[i] > 0:
+                poss.append((ps[i], i))
+
+        #R negativos
+        rns = []
+        for neg in negs:
+            rns.append(qs[neg[1]]/neg[0])
+
+        #R positivos
+        rps = []
+        for pos in poss:
+            rps.append(qs[pos[1]]/pos[0])
+
+        #N sei que simbolo eh aquele ent vai U
+        u1 = max(0, max(rns))
+        u2 = min(1, min(rps))
+        print("u1: {}".format(u1))
+        print("u2: {}".format(u1))
+
+
+        #Saiu
+        if u1 > u2:
+            print("des u foi")
+            return (False, 0, 0, 0, 0)
+        
+        #interseccoes
+        ix1 = x1 + u1 * p2
+        iy1 = y1 + u1 * p4
+
+        ix2 = x1 + u2 * p2
+        iy2 = y1 + u2 * p4
+
+        return (True, ix1, iy1, ix2, iy2)
 
     #FUNCOES DE JANELA
 
