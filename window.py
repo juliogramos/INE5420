@@ -131,17 +131,22 @@ class Ui(QtWidgets.QMainWindow):
             #self.painter.drawLine(x1, y1, x2, y2)
         elif object.type == "Polygon":
             ps = []
-            if self.waCheck.isChecked():
-                ok, newobj = self.Waclippig(object.points)
-                for p in newobj:
-                    ps.append((self.viewportTransformation(p)))
-            else:
-                for p in object.points:
-                   ps.append(self.viewportTransformation(p))
+            for p in object.points:
+                ps.append(self.viewportTransformation(p))
+
+  
+            ok, newobj = self.Waclippig(ps)
+            nps = newobj[0]
             
+            if not ok: return
+
             for i in range(1, len(ps)):
-                self.painter.drawLine(ps[i-1][0], ps[i-1][1], ps[i][0], ps[i][1])
-            self.painter.drawLine(ps[-1][0], ps[-1][1], ps[0][0], ps[0][1])
+                self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
+            if nps[-1] == nps[:-1][-1]: return
+            self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
+            print("LEN COMPARE")
+            print(ps)
+            print(nps)
 
     def drawAll(self):
         #Limpa
@@ -324,66 +329,77 @@ class Ui(QtWidgets.QMainWindow):
         x, y = point
         # The index from window vertices list must be the
         # right before the next window vertice
-        if x == 1:
+        if x == self.cgSubcanvas.xMax:
             # Right, so right bottom
-            index = window_vertices.index(((1, -1), 0))
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMin), 0))
             window_vertices.insert(index, (point, code))
-        if x == -1:
+        if x == self.cgSubcanvas.xMin:
             # Left, so left top
-            index = window_vertices.index(((-1, 1), 0))
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMax), 0))
 
             window_vertices.insert(index, (point, code))
-        if y == 1:
+        if y == self.cgSubcanvas.yMax:
             # Top, so right top
-            index = window_vertices.index(((1, 1), 0))
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMax), 0))
             window_vertices.insert(index, (point, code))
-        if y == -1:
+        if y == self.cgSubcanvas.yMin:
             # Bottom, so left bottom
-            index = window_vertices.index(((-1, -1), 0))
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMin), 0))
             window_vertices.insert(index, (point, code))
         return window_vertices
 
 
-    def is_point_outside_window(self, points):
-            return np.any((points < -1) | (points > 1))
+    def waLimites(self, points):
+            inside = []
+            for p in points:
+                if (p[0] >= self.cgSubcanvas.xMin
+                    and p[1] >= self.cgSubcanvas.yMin) and (
+                    p[0] <= self.cgSubcanvas.xMax
+                    and p[1] <= self.cgSubcanvas.yMax):
+                    inside.append(p)
 
-
-    def is_point_inside_window(self, points):
-        return not self.is_point_outside_window(np.array(points))
+            return inside
 
     def Waclippig(self, coordenadas):
-        pontos_fora = np.all([self.is_point_outside_window(np.array(c)) for c in coordenadas])
-
-        if pontos_fora:
+        print("COORDENADAS INICIASIS")
+        print(coordenadas)
+        pontosDentro = self.waLimites(coordenadas)
+        if not pontosDentro:
             return False, [None]
-        win_vers = [((-1, 1), 0), ((1, 1), 0), ((1, -1), 0), ((-1, -1), 0)]
-        obj_vertices = [(c, 0) for c in coordenadas]
+        
+        win_vers = [((self.cgSubcanvas.xMin, self.cgSubcanvas.yMax), 0), 
+                    ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMax), 0), 
+                    ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMin), 0), 
+                    ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMin), 0)]
+        obj_vertices = [(list(c), 0) for c in coordenadas]
 
         total_pontos = len(coordenadas)
         pontos_inseridos = []
 
         for i in range(total_pontos):
-            p0 = coordenadas[i]
-            p1 = coordenadas[(i + 1) % total_pontos]
+            p0 = list(coordenadas[i])
+            p1 = list(coordenadas[(i + 1) % total_pontos])
             
-            np0 = []
-            np1 = []
+            np0 = [None, None]
+            np1 = [None, None]
 
-            visivel, np0[0], np0[1
-                                 ], np1[0], np1[1] = self.csLineClipping(p0.x, p0.y, p1.x, p1.y)
-            np0 = (np0[0], np0[1])
-            np1 = (np1[0], np1[1])
+            visivel, np0[0], np0[1], np1[0], np1[1] = self.csLineClipping(
+                p0[0], p0[1], p1[0], p1[1])
             if visivel:
                 if np1 != p1:
-                    point_idx = obj_vertices.index((p0, 0)) + 10
+                    point_idx = obj_vertices.index((p0, 0)) + 1
                     obj_vertices.insert(point_idx, (np1, 2))
-                    win_vertices = self.w_a_get_window_index(self.win_vertices, np0, 2) 
+                    win_vers = self.w_a_get_window_index(win_vers, np1, 2)
 
                 if np0 != p0:
-                    point_idx = obj_vertices.index((p0, 0)) + 10
+                    point_idx = obj_vertices.index((p0, 0)) + 1
                     obj_vertices.insert(point_idx, (np0, 1))
                     pontos_inseridos.append((np0, 1))
-                    win_vertices = self.w_a_get_window_index(self.win_vertices, np0, 1) 
+                    win_vers = self.w_a_get_window_index(win_vers, np0, 1)
     
         poligonos_novos = []
         pontos_novos = []
@@ -397,17 +413,17 @@ class Ui(QtWidgets.QMainWindow):
 
                 obj_len = len(obj_vertices)
                 for aux_index in range(obj_len):
-                    (p, c) = obj_vertices[(ponto_index + aux_index) % obj_len]
+                    (p, c) = obj_vertices[(point_idx + aux_index) % obj_len]
                     pontos_novos.append((p, c))
                     inside_points.append(p)
                     if c != 0:
                         break 
 
                 ultimo_ponto = pontos_novos[-1]
-                ponto_index = win_vertices.index(ultimo_ponto)
-                win_len = len(win_vertices)
+                point_idx = win_vers.index(ultimo_ponto)
+                win_len = len(win_vers)
                 for aux_index in range(win_len):
-                    (p, c) = win_vertices[(ponto_index + aux_index) % win_len]
+                    (p, c) = win_vers[(point_idx + aux_index) % win_len]
                     pontos_novos.append((p, c))
                     inside_points.append(p)
                     if c != 0:
@@ -417,7 +433,6 @@ class Ui(QtWidgets.QMainWindow):
             coordenada = poligonos_novos
         else:
             coordenada = [coordenadas]
-
         return True, coordenada
                     
 
