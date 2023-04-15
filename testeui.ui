@@ -283,7 +283,7 @@ Window</string>
       <x>10</x>
       <y>400</y>
       <width>151</width>
-      <height>71</height>
+      <height>91</height>
      </rect>
     </property>
     <property name="title">
@@ -321,6 +321,22 @@ Window</string>
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QRadioButton" name="waCheck">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>60</y>
+       <width>112</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Weiler-Atherton</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -329,7 +345,7 @@ Window</string>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>
