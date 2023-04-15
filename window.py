@@ -131,6 +131,7 @@ class Ui(QtWidgets.QMainWindow):
             #self.painter.drawLine(x1, y1, x2, y2)
         elif object.type == "Polygon":
             ps = []
+            fill_p = []
             for p in object.points:
                 ps.append(self.viewportTransformation(p))
 
@@ -142,8 +143,26 @@ class Ui(QtWidgets.QMainWindow):
 
             for i in range(1, len(ps)):
                 self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
-            if nps[-1] == nps[:-1][-1]: return
-            self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
+            
+                if nps[-1] == nps[:-1][-1]: return 
+                self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
+            
+                if object.filled:
+                    fill_p.append((int(nps[i-1][0]), int(nps[i-1][1])))
+
+                if fill_p:
+                    # Create QPoints just to use filling primitive from pyqt
+                    polygon = QtGui.QPolygonF()
+                    for point in fill_p:
+                        new_point = QtCore.QPointF(point[0], point[1])
+                        polygon.append(new_point)
+                    path = QtGui.QPainterPath()
+                    path.addPolygon(polygon)
+                    self.painter.setBrush(QtGui.QColor(*object.color))
+                    self.painter.drawPath(path)
+                
+            
+
             print("LEN COMPARE")
             print(ps)
             print(nps)
@@ -498,6 +517,9 @@ class Ui(QtWidgets.QMainWindow):
                 newPoly.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
             else:
                 newPoly.color = (0,0,0,255)
+            if novoPoligonoDialog.fillCheckBox.isChecked():
+                newPoly.filled = True
+                print('prenchjdo = true')
             self.drawOne(newPoly)
             self.status.addItem("Polígono adicionado com sucesso.")
         else:
