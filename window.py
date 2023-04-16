@@ -96,16 +96,26 @@ class Ui(QtWidgets.QMainWindow):
 
         self.loadButton.clicked.connect(self.loadObjs)
 
-    def drawBorder(self):
-        self.pen = QtGui.QPen(Qt.red)
+    def drawBorder(self, color=Qt.red):
+        self.pen = QtGui.QPen(color)
         self.pen.setWidth(5)
         self.painter.setPen(self.pen)
+        points = [(20, 20), (20, 380), (380, 20), (380, 380)]
 
-        self.painter.drawLine(20, 20, 380, 20)
-        self.painter.drawLine(380, 20, 380, 380)
-        self.painter.drawLine(380, 380, 20, 380)
-        self.painter.drawLine(20, 380, 20, 20)
+        polygon = QtGui.QPolygonF()
+        for point in points:
+            new_point = QtCore.QPointF(point[0], point[1])
+            
+            polygon.append(new_point)
+        path = QtGui.QPainterPath()
+        path.addPolygon(polygon)
+        self.painter.setBrush(QtGui.QColor(Qt.red))
+        self.painter.drawLine(polygon[0], polygon[1])
+        self.painter.drawLine(polygon[0], polygon[2])
+        self.painter.drawLine(polygon[1], polygon[3])
+        self.painter.drawLine(polygon[2], polygon[3])
 
+        print("desenhou borda")
     def drawOne(self, object):
         self.applyPPCmatrixOne(object)
         self.pen = QtGui.QPen(QtGui.QColor(object.color[0], object.color[1], object.color[2], 255))
@@ -116,6 +126,8 @@ class Ui(QtWidgets.QMainWindow):
             (x, y) = self.viewportTransformation(object)
             if self.pointClipping(x,y):
                 self.painter.drawPoint(x, y)
+            
+        
         elif object.type == "Line":
             (x1, y1) = self.viewportTransformation(object.p1)
             (x2,y2) = self.viewportTransformation(object.p2)
@@ -129,6 +141,7 @@ class Ui(QtWidgets.QMainWindow):
             if clipRes[0]:
                 self.painter.drawLine(int(clipRes[1]), int(clipRes[2]), int(clipRes[3]), int(clipRes[4]))
             #self.painter.drawLine(x1, y1, x2, y2)
+        
         elif object.type == "Polygon":
             ps = []
             fill_p = []
@@ -144,8 +157,6 @@ class Ui(QtWidgets.QMainWindow):
             for i in range(1, len(ps)):
                 self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
             
-                if nps[-1] == nps[:-1][-1]: return 
-                self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
             
                 if object.filled:
                     fill_p.append((int(nps[i-1][0]), int(nps[i-1][1])))
@@ -155,7 +166,9 @@ class Ui(QtWidgets.QMainWindow):
                     polygon = QtGui.QPolygonF()
                     for point in fill_p:
                         new_point = QtCore.QPointF(point[0], point[1])
+                        
                         polygon.append(new_point)
+                    #if polygon[-1] == polygon[:-1][-1]: polygon.removeLast()
                     path = QtGui.QPainterPath()
                     path.addPolygon(polygon)
                     self.painter.setBrush(QtGui.QColor(*object.color))
@@ -163,9 +176,12 @@ class Ui(QtWidgets.QMainWindow):
                 
             
 
+            if nps[-1] == nps[:-1][-1]: return 
+            self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
             print("LEN COMPARE")
             print(ps)
             print(nps)
+        
 
     def drawAll(self):
         #Limpa
@@ -178,7 +194,9 @@ class Ui(QtWidgets.QMainWindow):
         for object in self.displayFile:
             print(object)
             self.drawOne(object)
-        self.update()
+        
+            self.drawBorder()
+            self.update()
 
     def pointClipping(self, x, y):
         xIn = False
