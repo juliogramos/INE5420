@@ -372,26 +372,26 @@ class Ui(QtWidgets.QMainWindow):
         x, y = point
         # The index from window vertices list must be the
         # right before the next window vertice
-        if x >= self.cgSubcanvas.xMax:
+        if x == self.cgSubcanvas.xMax:
             # Right, so right bottom
-            index = window_vertices.index(
-                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMax), 0))
-            window_vertices.insert(index, (point, code))
-        if x <= self.cgSubcanvas.xMin:
-            # Left, so left top
-            index = window_vertices.index(
-                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMin), 0))
-
-            window_vertices.insert(index, (point, code))
-        if y >= self.cgSubcanvas.yMax:
-            # Top, so right top
             index = window_vertices.index(
                 ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMin), 0))
             window_vertices.insert(index, (point, code))
-        if y <= self.cgSubcanvas.yMin:
-            # Bottom, so left bottom
+        if x == self.cgSubcanvas.xMin:
+            # Left, so left top
             index = window_vertices.index(
                 ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMax), 0))
+
+            window_vertices.insert(index, (point, code))
+        if y == self.cgSubcanvas.yMax:
+            # Top, so right top
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMax), 0))
+            window_vertices.insert(index, (point, code))
+        if y == self.cgSubcanvas.yMin:
+            # Bottom, so left bottom
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMin), 0))
             window_vertices.insert(index, (point, code))
         return window_vertices
 
