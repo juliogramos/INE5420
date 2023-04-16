@@ -154,33 +154,37 @@ class Ui(QtWidgets.QMainWindow):
             
             if not ok: return
 
-            for i in range(1, len(ps)):
+            for i in range(1, len(nps)):
                 self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
             
             
                 if object.filled:
                     fill_p.append((int(nps[i-1][0]), int(nps[i-1][1])))
 
-                if fill_p:
-                    # Create QPoints just to use filling primitive from pyqt
-                    polygon = QtGui.QPolygonF()
-                    for point in fill_p:
-                        new_point = QtCore.QPointF(point[0], point[1])
-                        
-                        polygon.append(new_point)
-                    #if polygon[-1] == polygon[:-1][-1]: polygon.removeLast()
-                    path = QtGui.QPainterPath()
-                    path.addPolygon(polygon)
-                    self.painter.setBrush(QtGui.QColor(*object.color))
-                    self.painter.drawPath(path)
+            if object.filled:
+                fill_p.append((int(nps[-1][0]), int(nps[-1][1])))
+                print("FILLP")
+                print(fill_p)
+
+            if fill_p:
+                # Create QPoints just to use filling primitive from pyqt
+                polygon = QtGui.QPolygonF()
+                for point in fill_p:
+                    new_point = QtCore.QPointF(point[0], point[1])
+
+                    polygon.append(new_point)
+                #if polygon[-1] == polygon[:-1][-1]: polygon.removeLast()
+                path = QtGui.QPainterPath()
+                path.addPolygon(polygon)
+                self.painter.setBrush(QtGui.QColor(*object.color))
+                self.painter.drawPath(path)
                 
             
-
-            if nps[-1] == nps[:-1][-1]: return 
-            self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
             print("LEN COMPARE")
             print(ps)
             print(nps)
+            if nps[-1] == nps[:-1][-1]: return 
+            self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
         
 
     def drawAll(self):
@@ -265,23 +269,25 @@ class Ui(QtWidgets.QMainWindow):
             if rcMax & 8  == 8:
                 intX = x1 + (x2 - x1) * (self.cgSubcanvas.yMax - y1) / (y2 - y1)
                 intY = self.cgSubcanvas.yMax
-            elif rcMax & 4 == 4:
+            if rcMax & 4 == 4:
                 intX = x1 + (x2 - x1) * (self.cgSubcanvas.yMin - y1) / (y2 - y1)
                 intY = self.cgSubcanvas.yMin
-            elif rcMax & 2 == 2:
+            if rcMax & 2 == 2:
                 intY = y1 + (y2 - y1) * (self.cgSubcanvas.xMax - x1) / (x2 - x1)
                 intX = self.cgSubcanvas.xMax
-            elif rcMax & 1 == 1:
+            if rcMax & 1 == 1:
                 intY = y1 + (y2 - y1) * (self.cgSubcanvas.xMin - x1) / (x2 - x1)
                 intX = self.cgSubcanvas.xMin
 
             if rcMax == rc1:
                 x1 = intX
                 y1 = intY
+                rc1 = 0
                 rc1 = self.rcFinder(x1, y1)
             else:
                 x2 = intX
                 y2 = intY
+                rc2 = 0
                 rc2 = self.rcFinder(x2, y2)
 
     def lbLineClipping(self, ox1, oy1, ox2, oy2):
@@ -366,26 +372,26 @@ class Ui(QtWidgets.QMainWindow):
         x, y = point
         # The index from window vertices list must be the
         # right before the next window vertice
-        if x == self.cgSubcanvas.xMax:
+        if x >= self.cgSubcanvas.xMax:
             # Right, so right bottom
-            index = window_vertices.index(
-                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMin), 0))
-            window_vertices.insert(index, (point, code))
-        if x == self.cgSubcanvas.xMin:
-            # Left, so left top
-            index = window_vertices.index(
-                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMax), 0))
-
-            window_vertices.insert(index, (point, code))
-        if y == self.cgSubcanvas.yMax:
-            # Top, so right top
             index = window_vertices.index(
                 ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMax), 0))
             window_vertices.insert(index, (point, code))
-        if y == self.cgSubcanvas.yMin:
-            # Bottom, so left bottom
+        if x <= self.cgSubcanvas.xMin:
+            # Left, so left top
             index = window_vertices.index(
                 ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMin), 0))
+
+            window_vertices.insert(index, (point, code))
+        if y >= self.cgSubcanvas.yMax:
+            # Top, so right top
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMax, self.cgSubcanvas.yMin), 0))
+            window_vertices.insert(index, (point, code))
+        if y <= self.cgSubcanvas.yMin:
+            # Bottom, so left bottom
+            index = window_vertices.index(
+                ((self.cgSubcanvas.xMin, self.cgSubcanvas.yMax), 0))
             window_vertices.insert(index, (point, code))
         return window_vertices
 
@@ -437,6 +443,9 @@ class Ui(QtWidgets.QMainWindow):
                     obj_vertices.insert(point_idx, (np0, 1))
                     pontos_inseridos.append((np0, 1))
                     win_vers = self.w_a_get_window_index(win_vers, np0, 1)
+
+            print("PONTOS INSERIDOS")
+            print(pontos_inseridos)
     
         poligonos_novos = []
         pontos_novos = []
@@ -444,6 +453,8 @@ class Ui(QtWidgets.QMainWindow):
             while pontos_inseridos != []:
                 ref = pontos_inseridos.pop(0)
                 rf_p, _ = ref 
+                print()
+                print(ref, rf_p)
                 inside_points = [rf_p]
                 point_idx = obj_vertices.index(ref) + 1
                 pontos_novos.append(ref)
@@ -457,6 +468,7 @@ class Ui(QtWidgets.QMainWindow):
                         break 
 
                 ultimo_ponto = pontos_novos[-1]
+                print(ultimo_ponto)
                 point_idx = win_vers.index(ultimo_ponto)
                 win_len = len(win_vers)
                 for aux_index in range(win_len):
@@ -470,6 +482,9 @@ class Ui(QtWidgets.QMainWindow):
             coordenada = poligonos_novos
         else:
             coordenada = [coordenadas]
+
+        print("COORDENADA")
+        print(coordenada)
         return True, coordenada
                     
 
