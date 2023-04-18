@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 import numpy as np
 
 from dataclasses import dataclass
-from object import Point, Line, Wireframe
+from object import Point, Line, Wireframe, Curve2D
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
@@ -29,7 +29,7 @@ class Ui(QtWidgets.QMainWindow):
         self.setButtons()
 
         #Determina o nome do objeto
-        self.indexes = [1, 1, 1]
+        self.indexes = [1, 1, 1, 1]
         self.displayFile = []
 
         self.vpSize = [0, 0, 400, 400]
@@ -59,9 +59,10 @@ class Ui(QtWidgets.QMainWindow):
     def viewportTransformation(self, point):
         #xvp = (point.cn_x - self.cgWindow.xMin)/(self.cgWindow.xMax - self.cgWindow.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
         #yvp = (1 - ((point.cn_y - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
-        print(self.cgWindowPPC)
         xvp = (point.cn_x - self.cgWindowPPC.xMin)/(self.cgWindowPPC.xMax - self.cgWindowPPC.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
         yvp = (1 - ((point.cn_y - self.cgWindowPPC.yMin)/(self.cgWindowPPC.yMax - self.cgWindowPPC.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
+        print(xvp)
+        print(yvp)
         return (round(xvp), round(yvp))
     
     def setCanvas(self):
@@ -79,6 +80,7 @@ class Ui(QtWidgets.QMainWindow):
         self.newPoint.clicked.connect(self.novoPontoWindow)
         self.newLine.clicked.connect(self.novaLinhaWindow)
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
+        self.newCurve.clicked.connect(self.novaCurvaWindow)
 
         self.zoomPlus.clicked.connect(self.zoomViewportIn)
         self.zoomMinus.clicked.connect(self.zoomViewportOut)
@@ -185,6 +187,16 @@ class Ui(QtWidgets.QMainWindow):
             print(nps)
             if nps[-1] == nps[:-1][-1]: return 
             self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
+
+        elif object.type == "Curve":
+            nps = []
+            for p in object.points:
+                nps.append(self.viewportTransformation(p))
+            print("NPS:")
+            print(nps)
+            print(object.points)
+            for i in range(1, len(object.points)):
+                self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
         
 
     def drawAll(self):
@@ -558,6 +570,70 @@ class Ui(QtWidgets.QMainWindow):
         else:
             self.status.addItem("Falha ao adicionar polígono.")
         self.update()
+
+    def novaCurvaWindow(self):
+        novoPoligonoDialog = UiPoligono()
+        if novoPoligonoDialog.exec_() and len(novoPoligonoDialog.listaPontos) >= 4 and (len(novoPoligonoDialog.listaPontos) - 4) % 3 == 0:
+            print("Entrou curva")
+            #PONTOS PRO TESTE
+            ps = [Point(10, 10, "P1"),
+                  Point(20, 30, "P2"),
+                  Point(30, 0, "P3"),
+                  Point(40, 10, "P4"),
+                  Point(50, 20, "P5"),
+                  Point(40, 40, "P6"),
+                  Point(60, 40, "P7"),
+                  Point(70, 40, "P8"),
+                  Point(60, 20, "P9"),
+                  Point(70, 10, "P10") 
+                  ]
+            curvePoints = self.makeCurve(ps, 0.1)
+            newCurve = Curve2D(curvePoints, "Curva {}".format(self.indexes[2]))
+            self.displayFile.append(newCurve)
+            self.indexes[3] += 1
+            self.objectList.addItem(newCurve.name)
+            if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
+                newCurve.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+            else:
+                newCurve.color = (0,0,0,255)
+            if novoPoligonoDialog.fillCheckBox.isChecked():
+                newCurve.filled = True
+                print('prenchjdo = true')
+            self.drawOne(newCurve)
+            self.status.addItem("Curva adicionado com sucesso.")
+        else:
+            self.status.addItem("Falha ao adicionar curva.")
+        self.update()
+
+    def getBlending(self, t):
+        return [(1 - t) ** 3, 3 * t * ((1 - t) ** 2), 3 * (t ** 2) * (1 - t), t ** 3]
+
+    def makeCurve(self, polyList, precisao):
+        #CONTINUIDADE 1 (mudar condição do exec se quiser outra continuidade)
+        # ou mudar pra especificar na criacao talvez
+        prelistsX = []
+        prelistsY = []
+        newlistsX = []
+        newlistsY = []
+        newCoords = []
+        for i in range(3, len(polyList), 3):
+            prelistsX.append([polyList[i-3].x, polyList[i-2].x, polyList[i-1].x, polyList[i].x])
+            prelistsY.append([polyList[i-3].y, polyList[i-2].y, polyList[i-1].y, polyList[i].y])
+
+        for i in range(len(prelistsX)):
+            t = 0
+            while t < 1:
+                newlistsX.append(np.dot(self.getBlending(t), prelistsX[i]))
+                newlistsY.append(np.dot(self.getBlending(t), prelistsY[i]))
+                t += precisao
+            newlistsX.append(np.dot(self.getBlending(1), prelistsX[i]))
+            newlistsY.append(np.dot(self.getBlending(1), prelistsY[i]))
+        
+        coords = list(zip(newlistsX, newlistsY))
+        ps = []
+        for c in coords:
+            ps.append(Point(c[0], c[1]))
+        return ps
 
     def transformaWindow(self):
         if self.objectList.currentRow() == -1:
