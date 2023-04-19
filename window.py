@@ -189,14 +189,15 @@ class Ui(QtWidgets.QMainWindow):
             self.painter.drawLine(int(nps[-1][0]), int(nps[-1][1]), int(nps[0][0]), int(nps[0][1]))
 
         elif object.type == "Curve":
-            nps = []
+            ps = []
             for p in object.points:
-                nps.append(self.viewportTransformation(p))
-            print("NPS:")
-            print(nps)
-            print(object.points)
-            for i in range(1, len(object.points)):
-                self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
+                ps.append(self.viewportTransformation(p))
+            nps = self.curveClipping(ps)
+            if nps:
+                print("LEN BELOW")
+                print(len(nps))
+                for i in range(1, len(nps)):
+                    self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
         
 
     def drawAll(self):
@@ -249,9 +250,6 @@ class Ui(QtWidgets.QMainWindow):
         #RC[1] = Abaixo     (4)
         #RC[2] = Direita    (2)
         #RC[3] = Esquerda   (1)
-
-        print("CLIPPANDO POR COHEN SUTHERLAND")
-
         x1 = ox1
         y1 = oy1
 
@@ -499,6 +497,28 @@ class Ui(QtWidgets.QMainWindow):
         print(coordenada)
         return True, coordenada
                     
+    def curveClipping(self, points):
+        clipPoints = []
+        started = False
+        for i in range(1, len(points)):
+            p1 = points[i-1]
+            p2 = points[i]
+
+            x1 = p1[0]
+            y1 = p1[1]
+
+            x2 = p2[0]
+            y2 = p2[1]
+
+            clipped = self.csLineClipping(x1, y1, x2, y2)
+            if clipped[0]:
+                if started == False: started = True
+                clipPoints.append((clipped[1], clipped[2]))
+                clipPoints.append((clipped[3], clipped[4]))
+            else:
+                if started: break
+
+        return clipPoints
 
     #FUNCOES DE JANELA
 
@@ -576,16 +596,16 @@ class Ui(QtWidgets.QMainWindow):
         if novoPoligonoDialog.exec_() and len(novoPoligonoDialog.listaPontos) >= 4 and (len(novoPoligonoDialog.listaPontos) - 4) % 3 == 0:
             print("Entrou curva")
             #PONTOS PRO TESTE
-            ps = [Point(10, 10, "P1"),
-                  Point(20, 30, "P2"),
-                  Point(30, 0, "P3"),
-                  Point(40, 10, "P4"),
-                  Point(50, 20, "P5"),
-                  Point(40, 40, "P6"),
-                  Point(60, 40, "P7"),
-                  Point(70, 40, "P8"),
-                  Point(60, 20, "P9"),
-                  Point(70, 10, "P10") 
+            ps = [Point(110, 110, "P1"),
+                  Point(120, 130, "P2"),
+                  Point(130, 100, "P3"),
+                  Point(140, 110, "P4"),
+                  Point(150, 120, "P5"),
+                  Point(140, 140, "P6"),
+                  Point(160, 140, "P7"),
+                  Point(170, 140, "P8"),
+                  Point(160, 120, "P9"),
+                  Point(170, 110, "P10") 
                   ]
             curvePoints = self.makeCurve(ps, 0.1)
             newCurve = Curve2D(curvePoints, "Curva {}".format(self.indexes[2]))
@@ -778,7 +798,7 @@ class Ui(QtWidgets.QMainWindow):
             obj.p2.cn_y = Y2
             print("N: {}, {}".format(obj.p1.x, obj.p1.y))
             print("PPC: {}, {}".format(obj.p1.cn_x, obj.p1.cn_y))
-        elif obj.type == "Polygon":
+        elif obj.type == "Polygon" or obj.type == "Curve":
             for p in obj.points:
                 P = (p.x, p.y, 1)
                 (X,Y,W) = np.matmul(P, self.ppcMatrix)
