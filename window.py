@@ -8,6 +8,7 @@ from object import Point, Line, Wireframe, Curve2D
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
+from novaCurva import UiCurva
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
 from descritorobj import DescritorOBJ
@@ -592,33 +593,51 @@ class Ui(QtWidgets.QMainWindow):
         self.update()
 
     def novaCurvaWindow(self):
-        novoPoligonoDialog = UiPoligono()
-        if novoPoligonoDialog.exec_() and len(novoPoligonoDialog.listaPontos) >= 4 and (len(novoPoligonoDialog.listaPontos) - 4) % 3 == 0:
+        #PONTOS PRO TESTE
+        """ ps = [Point(110, 110, "P1"),
+                Point(120, 130, "P2"),
+                Point(130, 100, "P3"),
+                Point(140, 110, "P4"),
+                Point(150, 120, "P5"),
+                Point(140, 140, "P6"),
+                Point(160, 140, "P7"),
+                Point(170, 140, "P8"),
+                Point(160, 120, "P9"),
+                Point(170, 110, "P10") 
+                ] """
+        novaCurvaDialog = UiCurva()
+        if novaCurvaDialog.exec_() and len(novaCurvaDialog.listaPontos) >= 4 and novaCurvaDialog.precisao.text():
+            
             print("Entrou curva")
-            #PONTOS PRO TESTE
-            ps = [Point(110, 110, "P1"),
-                  Point(120, 130, "P2"),
-                  Point(130, 100, "P3"),
-                  Point(140, 110, "P4"),
-                  Point(150, 120, "P5"),
-                  Point(140, 140, "P6"),
-                  Point(160, 140, "P7"),
-                  Point(170, 140, "P8"),
-                  Point(160, 120, "P9"),
-                  Point(170, 110, "P10") 
-                  ]
-            curvePoints = self.makeCurve(ps, 0.1)
+            ps = novaCurvaDialog.curveList
+            precisao = float(novaCurvaDialog.precisao.text())
+            cont = 0
+
+            if novaCurvaDialog.c1.isChecked(): cont = 1
+            elif novaCurvaDialog.c2.isChecked(): cont = 2
+            elif novaCurvaDialog.c3.isChecked(): cont = 3
+            if cont == 0 and len(novaCurvaDialog.listaPontos) % 4 != 0:
+                self.status.addItem("Número de pontos deve ser um múltiplo de 4!")
+                self.update()
+                return
+            elif cont == 1 and (len(novaCurvaDialog.listaPontos) - 4) % 3 != 0:
+                self.status.addItem("Número de pontos deve ser 4 + um múltiplo de 3!")
+                self.update()
+                return
+            elif cont == 2 and (len(novaCurvaDialog.listaPontos) - 4) % 2 != 0:
+                self.status.addItem("Número de pontos deve ser 4 + um múltiplo de 2!")
+                self.update()
+                return
+
+            curvePoints = self.makeCurve(ps, precisao, cont)
             newCurve = Curve2D(curvePoints, "Curva {}".format(self.indexes[2]))
             self.displayFile.append(newCurve)
             self.indexes[3] += 1
             self.objectList.addItem(newCurve.name)
-            if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
-                newCurve.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+            if novaCurvaDialog.rValue.text() and novaCurvaDialog.gValue.text() and novaCurvaDialog.bValue.text():
+                newCurve.color = ((int(novaCurvaDialog.rValue.text()), int(novaCurvaDialog.gValue.text()), int(novaCurvaDialog.bValue.text()), 255))
             else:
                 newCurve.color = (0,0,0,255)
-            if novoPoligonoDialog.fillCheckBox.isChecked():
-                newCurve.filled = True
-                print('prenchjdo = true')
             self.drawOne(newCurve)
             self.status.addItem("Curva adicionado com sucesso.")
         else:
@@ -628,7 +647,7 @@ class Ui(QtWidgets.QMainWindow):
     def getBlending(self, t):
         return [(1 - t) ** 3, 3 * t * ((1 - t) ** 2), 3 * (t ** 2) * (1 - t), t ** 3]
 
-    def makeCurve(self, polyList, precisao):
+    def makeCurve(self, polyList, precisao, cont):
         #CONTINUIDADE 1 (mudar condição do exec se quiser outra continuidade)
         # ou mudar pra especificar na criacao talvez
         prelistsX = []
@@ -636,7 +655,14 @@ class Ui(QtWidgets.QMainWindow):
         newlistsX = []
         newlistsY = []
         newCoords = []
-        for i in range(3, len(polyList), 3):
+        
+        step = 0
+        if cont == 0: step = 4
+        elif cont == 1: step = 3
+        elif cont == 2: step = 2
+        elif cont == 3: step = 1
+
+        for i in range(3, len(polyList), step):
             prelistsX.append([polyList[i-3].x, polyList[i-2].x, polyList[i-1].x, polyList[i].x])
             prelistsY.append([polyList[i-3].y, polyList[i-2].y, polyList[i-1].y, polyList[i].y])
 
