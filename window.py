@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt
 import numpy as np
 
 from dataclasses import dataclass
+
+from numpy._typing import _256Bit
 from object import Point, Line, Wireframe, Curve2D
 from novoPonto import UiPonto
 from novaLinha import UiLinha
@@ -680,6 +682,71 @@ class Ui(QtWidgets.QMainWindow):
         for c in coords:
             ps.append(Point(c[0], c[1]))
         return ps
+
+    def calculate_bspline_param(self, points, precisao):
+        MBS = np.array(
+        [
+            [-1 / 6, 1 / 2, -1 / 2, 1 / 6],
+            [1 / 2, -1, 1 / 2, 0],
+            [-1 / 2, 0, 1 / 2, 0],
+            [1 / 6, 2 / 3, 1 / 6, 0],
+        ]
+    )
+
+        GBS_x = []
+        GBS_y = []
+        for (x, y, _) in points:
+            GBS_x.append(x)
+            GBS_y.append(y)
+
+        GBS_x = np.array([GBS_x]).T 
+        coeff_x = MBS.dot([GBS_x]).T[0]
+        init_diff_x = [
+                coeff_x[3], 
+                coeff_x[0] * (precisao ** 3) + coeff_x[1] * (precisao ** 2) + coeff_x[2] ** precisao,
+                6 * coeff_x[0] * (precisao ** 3) + 2 * coeff_x[1] * (precisao ** 2),
+                6 * coeff_x[0] * (precisao ** 3)
+                    ]
+
+        GBS_y = np.array([GBS_y]).T 
+        coeff_y = MBS.dot([GBS_y]).T[0]
+        init_diff_y = [
+                coeff_y[3], 
+                coeff_y[0] * (precisao ** 3) + coeff_y[1] * (precisao ** 2) + coeff_y[2] ** precisao,
+                6 * coeff_y[0] * (precisao ** 3) + 2 * coeff_y[1] * (precisao ** 2),
+                6 * coeff_y[0] * (precisao ** 3)
+                ]
+        return init_diff_x, init_diff_y
+
+    def makeBSCurve(self, polyList, precisao, cont):
+        spline_points = []
+        iterations = int(1/precisao)
+        num_points = len(polyList)
+        min_points = 4 
+
+        for i in range(0, num_points):
+            upper_bound = i + min_points
+
+            if upper_bound > num_points:
+                break
+            points = polyList[i:upper_bound]
+
+            
+            delta_x, delta_y = self.calculate_bspline_param(points, precisao) #TODO 
+
+            x = delta_x[0]
+            y = delta_y[0]
+            spline_points.append((x, y, 0))
+            for _ in range(0, iterations):
+                x += delta_x[1]
+                delta_x[1] += delta_x[2] 
+                delta_x[2] += delta_x[3]
+                
+                y += delta_y[1]
+                delta_y[1] += delta_y[2] 
+                delta_y[2] += delta_y[3]
+
+                spline_points.append((x, y, 0))
 
     def transformaWindow(self):
         if self.objectList.currentRow() == -1:
