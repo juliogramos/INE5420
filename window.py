@@ -6,11 +6,12 @@ import numpy as np
 from dataclasses import dataclass
 
 from numpy._typing import _256Bit
-from object import Point, Line, Wireframe, Curve2D
+from object import BSplineCurve, Point, Line, Wireframe, Curve2D
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 from novaCurva import UiCurva
+from novaBSCurva import UiBSCurva
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
 from descritorobj import DescritorOBJ
@@ -84,6 +85,7 @@ class Ui(QtWidgets.QMainWindow):
         self.newLine.clicked.connect(self.novaLinhaWindow)
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
         self.newCurve.clicked.connect(self.novaCurvaWindow)
+        self.newBSCurve.clicked.connect(self.novaBSplineCurvaWindow)
 
         self.zoomPlus.clicked.connect(self.zoomViewportIn)
         self.zoomMinus.clicked.connect(self.zoomViewportOut)
@@ -646,6 +648,42 @@ class Ui(QtWidgets.QMainWindow):
             self.status.addItem("Falha ao adicionar curva.")
         self.update()
 
+    def novaBSplineCurvaWindow(self):
+            #PONTOS PRO TESTE
+            """ ps = [Point(110, 110, "P1",
+                    Point(120, 130, "P2"),
+                    Point(130, 100, "P3"),
+                    Point(140, 110, "P4"),
+                    Point(150, 120, "P5"),
+                    Point(140, 140, "P6"),
+                    Point(160, 140, "P7"),
+                    Point(170, 140, "P8"),
+                    Point(160, 120, "P9"),
+                    Point(170, 110, "P10") 
+                    ] """
+            novaSPCurvaDialog = UiBSCurva()
+            if novaSPCurvaDialog.exec_() and len(novaSPCurvaDialog.listaPontos) >= 4 and novaSPCurvaDialog.precisao.text():
+                
+                print("Entrou curva")
+                ps = novaSPCurvaDialog.curveList
+                precisao = float(novaSPCurvaDialog.precisao.text())
+                
+                curvePoints = self.makeBSCurve(ps, precisao)
+                newCurve = BSplineCurve(curvePoints, "Curva {}".format(self.indexes[2]))
+                self.displayFile.append(newCurve)
+                self.indexes[3] += 1
+                self.objectList.addItem(newCurve.name)
+                if novaSPCurvaDialog.rValue.text() and novaSPCurvaDialog.gValue.text() and novaSPCurvaDialog.bValue.text():
+                    newCurve.color = ((int(novaSPCurvaDialog.rValue.text()), int(novaSPCurvaDialog.gValue.text()), int(novaSPCurvaDialog.bValue.text()), 255))
+                else:
+                    newCurve.color = (0,0,0,255)
+                self.drawOne(newCurve)
+                self.status.addItem("Curva adicionado com sucesso.")
+            else:
+                self.status.addItem("Falha ao adicionar curva.")
+            self.update()
+
+
     def getBlending(self, t):
         return [(1 - t) ** 3, 3 * t * ((1 - t) ** 2), 3 * (t ** 2) * (1 - t), t ** 3]
 
@@ -695,30 +733,33 @@ class Ui(QtWidgets.QMainWindow):
 
         GBS_x = []
         GBS_y = []
-        for (x, y, _) in points:
-            GBS_x.append(x)
-            GBS_y.append(y)
+        for point in points:
+            GBS_x.append(point.x)
+            GBS_y.append(point.y)
 
         GBS_x = np.array([GBS_x]).T 
-        coeff_x = MBS.dot([GBS_x]).T[0]
+        coeff_x = MBS.dot(GBS_x).T[0]
+        print(coeff_x)
+        a, b, c, d = coeff_x
         init_diff_x = [
-                coeff_x[3], 
-                coeff_x[0] * (precisao ** 3) + coeff_x[1] * (precisao ** 2) + coeff_x[2] ** precisao,
-                6 * coeff_x[0] * (precisao ** 3) + 2 * coeff_x[1] * (precisao ** 2),
-                6 * coeff_x[0] * (precisao ** 3)
+               d,
+                a * (precisao ** 3) + b * (precisao ** 2) + c ** precisao,
+                6 * a * (precisao ** 3) + 2 * b * (precisao ** 2),
+                6 * a * (precisao ** 3)
                     ]
 
         GBS_y = np.array([GBS_y]).T 
-        coeff_y = MBS.dot([GBS_y]).T[0]
+        coeff_y = MBS.dot(GBS_y).T[0]
+        a, b, c, d = coeff_x
         init_diff_y = [
-                coeff_y[3], 
-                coeff_y[0] * (precisao ** 3) + coeff_y[1] * (precisao ** 2) + coeff_y[2] ** precisao,
-                6 * coeff_y[0] * (precisao ** 3) + 2 * coeff_y[1] * (precisao ** 2),
-                6 * coeff_y[0] * (precisao ** 3)
-                ]
+               d,
+                a * (precisao ** 3) + b * (precisao ** 2) + c ** precisao,
+                6 * a * (precisao ** 3) + 2 * b * (precisao ** 2),
+                6 * a * (precisao ** 3)
+                    ]
         return init_diff_x, init_diff_y
 
-    def makeBSCurve(self, polyList, precisao, cont):
+    def makeBSCurve(self, polyList, precisao):
         spline_points = []
         iterations = int(1/precisao)
         num_points = len(polyList)
@@ -746,7 +787,8 @@ class Ui(QtWidgets.QMainWindow):
                 delta_y[1] += delta_y[2] 
                 delta_y[2] += delta_y[3]
 
-                spline_points.append((x, y, 0))
+                spline_points.append(Point(x, y))
+                #spline_points.append((x, y, 0))
 
     def transformaWindow(self):
         if self.objectList.currentRow() == -1:
