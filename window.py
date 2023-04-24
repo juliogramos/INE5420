@@ -669,6 +669,9 @@ class Ui(QtWidgets.QMainWindow):
                 precisao = float(novaSPCurvaDialog.precisao.text())
                 
                 curvePoints = self.makeBSCurve(ps, precisao)
+                print("CURVEPOINTS:")
+                for p in curvePoints:
+                    print(p)
                 newCurve = BSplineCurve(curvePoints, "Curva {}".format(self.indexes[2]))
                 self.displayFile.append(newCurve)
                 self.indexes[3] += 1
@@ -729,7 +732,7 @@ class Ui(QtWidgets.QMainWindow):
             [-1 / 2, 0, 1 / 2, 0],
             [1 / 6, 2 / 3, 1 / 6, 0],
         ]
-    )
+        )
 
         GBS_x = []
         GBS_y = []
@@ -739,23 +742,22 @@ class Ui(QtWidgets.QMainWindow):
 
         GBS_x = np.array([GBS_x]).T 
         coeff_x = MBS.dot(GBS_x).T[0]
-        print(coeff_x)
-        a, b, c, d = coeff_x
+        aX, bX, cX, dX = coeff_x
         init_diff_x = [
-               d,
-                a * (precisao ** 3) + b * (precisao ** 2) + c ** precisao,
-                6 * a * (precisao ** 3) + 2 * b * (precisao ** 2),
-                6 * a * (precisao ** 3)
+               dX,
+                aX * (precisao ** 3) + bX * (precisao ** 2) + cX * precisao,
+                6 * aX * (precisao ** 3) + 2 * bX * (precisao ** 2),
+                6 * aX * (precisao ** 3)
                     ]
 
         GBS_y = np.array([GBS_y]).T 
         coeff_y = MBS.dot(GBS_y).T[0]
-        a, b, c, d = coeff_x
+        aY, bY, cY, dY = coeff_y
         init_diff_y = [
-               d,
-                a * (precisao ** 3) + b * (precisao ** 2) + c ** precisao,
-                6 * a * (precisao ** 3) + 2 * b * (precisao ** 2),
-                6 * a * (precisao ** 3)
+               dY,
+                aY * (precisao ** 3) + bY * (precisao ** 2) + cY * precisao,
+                6 * aY * (precisao ** 3) + 2 * bY * (precisao ** 2),
+                6 * aY * (precisao ** 3)
                     ]
         return init_diff_x, init_diff_y
 
@@ -773,12 +775,14 @@ class Ui(QtWidgets.QMainWindow):
             points = polyList[i:upper_bound]
 
             
-            delta_x, delta_y = self.calculate_bspline_param(points, precisao) #TODO 
-
+            delta_x, delta_y = self.calculate_bspline_param(points, precisao)
             x = delta_x[0]
             y = delta_y[0]
+            print("DELTA X")
+            print(delta_x)
+            print("DELTA y")
+            print(delta_y)
             spline_points.append(Point(x, y))
-            #spline_points.append((x, y, 0))
             for _ in range(0, iterations):
                 x += delta_x[1]
                 delta_x[1] += delta_x[2] 
@@ -789,7 +793,6 @@ class Ui(QtWidgets.QMainWindow):
                 delta_y[2] += delta_y[3]
 
                 spline_points.append(Point(x, y))
-                #spline_points.append((x, y, 0))
         print("sp points")
         print(spline_points)
         return spline_points
