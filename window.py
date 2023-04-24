@@ -777,7 +777,8 @@ class Ui(QtWidgets.QMainWindow):
 
             x = delta_x[0]
             y = delta_y[0]
-            spline_points.append((x, y, 0))
+            spline_points.append(Point(x, y))
+            #spline_points.append((x, y, 0))
             for _ in range(0, iterations):
                 x += delta_x[1]
                 delta_x[1] += delta_x[2] 
@@ -789,7 +790,9 @@ class Ui(QtWidgets.QMainWindow):
 
                 spline_points.append(Point(x, y))
                 #spline_points.append((x, y, 0))
-
+        print("sp points")
+        print(spline_points)
+        return spline_points
     def transformaWindow(self):
         if self.objectList.currentRow() == -1:
             self.status.addItem("Erro: nenhum objeto selecionado.")
@@ -934,6 +937,7 @@ class Ui(QtWidgets.QMainWindow):
             print("N: {}, {}".format(obj.p1.x, obj.p1.y))
             print("PPC: {}, {}".format(obj.p1.cn_x, obj.p1.cn_y))
         elif obj.type == "Polygon" or obj.type == "Curve":
+            print(obj.points)
             for p in obj.points:
                 P = (p.x, p.y, 1)
                 (X,Y,W) = np.matmul(P, self.ppcMatrix)

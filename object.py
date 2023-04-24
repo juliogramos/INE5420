@@ -35,14 +35,10 @@ class Curve2D:
     filled = False
 
 @dataclass
-class BSplineCurve(Curve2D):
+class BSplineCurve:
     points: list[Point]
     name: str = ""
     color: tuple = (0, 0, 0)
     type: str = "Curve"
     filled = False
 
-    def build_curve(self):
-        
-        spline_points = []
-        itera
