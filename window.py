@@ -17,6 +17,9 @@ from novoPoligono3D import UiPoligono3D
 
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
+
+from transformacao3d import UiTransforma3D
+
 from descritorobj import DescritorOBJ
 
 @dataclass
@@ -43,6 +46,7 @@ class Ui(QtWidgets.QMainWindow):
         self.vpSize = [0, 0, 400, 400]
         self.wSize = [0, 0, 400, 300]
         self.windowAngle = 0
+        self.projmode = "ortogonal" #ou "perspectiva"
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
@@ -132,10 +136,18 @@ class Ui(QtWidgets.QMainWindow):
         print("desenhou borda")
         
     def drawOne(self, object):
-        self.applyPPCmatrixOne(object)
         self.pen = QtGui.QPen(QtGui.QColor(object.color[0], object.color[1], object.color[2], 255))
         self.pen.setWidth(5)
         self.painter.setPen(self.pen)
+        
+        if object.dimension == 2:
+            self.drawOne2D(object)
+        else:
+            self.drawOne3D(object)
+                
+    def drawOne2D(self, object):
+        print("DRAW 2D")
+        self.applyPPCmatrixOne(object)
         
         if object.type == "Point":
             (x, y) = self.viewportTransformation(object)
@@ -210,8 +222,12 @@ class Ui(QtWidgets.QMainWindow):
                 print(len(nps))
                 for i in range(1, len(nps)):
                     self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
-                    
-        elif object.type == "Point3D":
+                
+    def drawOne3D(self, object):
+        print("DRAW 3D")
+        self.applyPPCmatrixOne(object)
+        
+        if object.type == "Point3D":
             #MUDAR PRO CERTO
             (x, y) = self.viewportTransformation(object)
             if self.pointClipping(x,y):
@@ -231,7 +247,6 @@ class Ui(QtWidgets.QMainWindow):
 
             for (p1, p2) in object.edges:
                 self.painter.drawLine(int(nps[p1][0]), int(nps[p1][1]), int(nps[p2][0]), int(nps[p2][1]))
-                
         
 
     def drawAll(self):
@@ -878,6 +893,13 @@ class Ui(QtWidgets.QMainWindow):
             self.status.addItem("Erro: nenhum objeto selecionado.")
             return
 
+        if self.displayFile[self.objectList.currentRow()].dimension == 2:
+            self.transforma2D()
+        else:
+            self.transforma3D()
+    
+    def transforma2D(self):
+        print("TRANSFORMA 2D")
         transformaDialog = UiTransforma()
         if transformaDialog.exec_():
             if transformaDialog.transX.text() or transformaDialog.transY.text():
@@ -925,9 +947,85 @@ class Ui(QtWidgets.QMainWindow):
                              transformaDialog.rotPoint.isChecked(),
                              transformaDialog.rotPointX.text(),
                              transformaDialog.rotPointY.text())
-                print("DEPOIS DE SAIR DA ROTAÇÃO: ")
-                print("{}, {}\n{}, {}".format(obj.p1.x, obj.p1.y, obj.p2.x, obj.p2.y))
-                print("------------------")
+                self.status.addItem(obj.name + " rotacionado com sucesso.")
+                self.drawAll()
+                self.status.addItem(obj.name + " transformado com sucesso.")
+                
+    def transforma3D(self):
+        print("TRANSFORMA 3D")
+        transformaDialog = UiTransforma3D()
+        if transformaDialog.exec_():
+            if transformaDialog.transX.text() or transformaDialog.transY.text() or transformaDialog.transZ.text():
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+                if transformaDialog.transX.text():
+                    Dx = int(transformaDialog.transX.text())
+                else:
+                    Dx = 0
+
+                if transformaDialog.transY.text():
+                    Dy = int(transformaDialog.transY.text())
+                else:
+                    Dy = 0
+                    
+                if transformaDialog.transZ.text():
+                    Dz = int(transformaDialog.transZ.text())
+                else:
+                    Dz = 0
+
+                self.translacao3D(obj, Dx, Dy, Dz)
+                self.status.addItem(obj.name + " transladado com sucesso.")
+                self.drawAll()
+
+            if transformaDialog.escX.text() or transformaDialog.escY.text() or transformaDialog.escZ.text():
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+
+                if transformaDialog.escX.text():
+                    Sx = int(transformaDialog.escX.text())
+                else:
+                    Sx = 1
+
+                if transformaDialog.escY.text():
+                    Sy = int(transformaDialog.escY.text())
+                else:
+                    Sy = 1
+                    
+                if transformaDialog.escZ.text():
+                    Sz = int(transformaDialog.escZ.text())
+                else:
+                    Sz = 1
+
+                self.escalonamento3D(obj, Sx, Sy, Sz)
+                self.status.addItem(obj.name + " escalonado com sucesso.")
+                self.drawAll()
+
+            if transformaDialog.rotX.text() or transformaDialog.rotY.text() or transformaDialog.rotZ.text():
+                obj = self.displayFile[self.objectList.currentRow()]
+                print(obj.name)
+                
+                if transformaDialog.rotX.text():
+                    Rx = int(transformaDialog.rotX.text())
+                else:
+                    Rx = 0
+                    
+                if transformaDialog.rotY.text():
+                    Ry = int(transformaDialog.rotY.text())
+                else:
+                    Ry = 0
+                    
+                if transformaDialog.rotZ.text():
+                    Rz = int(transformaDialog.rotZ.text())
+                else:
+                    Rz = 0
+                    
+                self.rotacao3D(obj, Rx, Ry, Rz, 
+                             transformaDialog.rotOrigem.isChecked(), 
+                             transformaDialog.rotObject.isChecked(),
+                             transformaDialog.rotPoint.isChecked(),
+                             transformaDialog.rotPointX.text(),
+                             transformaDialog.rotPointY.text(),
+                             transformaDialog.rotPointZ.text())
                 self.status.addItem(obj.name + " rotacionado com sucesso.")
                 self.drawAll()
                 self.status.addItem(obj.name + " transformado com sucesso.")
@@ -961,6 +1059,18 @@ class Ui(QtWidgets.QMainWindow):
             x, y = x//len(obj.points), y//len(obj.points)
             
             return (x, y)
+
+        if obj.type == "Point3D":
+            return (obj.x, obj.y, obj.z)
+        
+        if obj.type == "Polygon3D":
+            x, y, z = 0, 0, 0
+            for i in obj.points:
+                x += i.x
+                y += i.y
+                z += i.z
+            x, y, z = x//len(obj.points), y//len(obj.points), z//len(obj.points)
+            return(x, y, z)
 
     def find_window_center(self):
         x = (self.cgWindow.xMin + self.cgWindow.xMax)/2
@@ -1106,6 +1216,32 @@ class Ui(QtWidgets.QMainWindow):
                 (X,Y,W) = np.matmul(P, T)
                 p.x = X
                 p.y = Y 
+                
+    def translacao3D(self, obj, Dx, Dy, Dz):
+        if obj.type == "Point3D":
+            P = [obj.x, obj.y, obj.z, 1]
+            T = [   [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [Dx, Dy, Dz, 1]
+                ]
+            (X,Y,Z, _) = np.matmul(P, T)
+            obj.x = X
+            obj.y = Y
+            obj.z = Z
+
+        elif obj.type == "Polygon3D":
+            T = [   [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [Dx, Dy, Dz, 1]
+                ]
+            for p in obj.points:
+                P = (p.x, p.y, p.z, 1)
+                (X,Y,Z, _) = np.matmul(P, T)
+                p.x = X
+                p.y = Y
+                p.z = Z
 
     def escalonamento(self, obj, Sx, Sy):
         centroInicial = self.find_center(obj)
@@ -1153,6 +1289,43 @@ class Ui(QtWidgets.QMainWindow):
         #print(centroFinal)
         #print(dist)
         self.translacao(obj, dist[0], dist[1])
+        
+    def escalonamento3D(self, obj, Sx, Sy, Sz):
+        centroInicial = self.find_center(obj)
+        if obj.type == "Point3D":
+            P = [obj.x, obj.y, obj.z, 1]
+            T = [   [Sx, 0, 0, 0],
+                    [0, Sy, 0, 0],
+                    [0, 0, Sz, 0],
+                    [0, 0, 0, 1]
+                ]
+            (X,Y,Z,_) = np.matmul(P, T)
+            obj.x = X
+            obj.y = Y
+            obj.z = Z
+        
+        elif obj.type == "Polygon3D":
+            centroInicial = self.find_center(obj)
+
+            T = [   [Sx, 0, 0, 0],
+                    [0, Sy, 0, 0],
+                    [0, 0, Sz, 0],
+                    [0, 0, 0, 1]
+                ]
+            for p in obj.points:
+                P = (p.x, p.y, p.z, 1)
+                (X,Y,Z,_) = np.matmul(P, T)
+                p.x = X
+                p.y = Y
+                p.z = Z
+
+        centroFinal = self.find_center(obj)
+        print(centroFinal)
+        dist = (centroInicial[0] - centroFinal[0], centroInicial[1] - centroFinal[1], centroInicial[2] - centroFinal[2])
+        #print(centroInicial)
+        #print(centroFinal)
+        #print(dist)
+        self.translacao3D(obj, dist[0], dist[1], dist[2])
 
     def rotacao(self, obj, degree, toOrigin, toObject, toPoint, pX, pY):
         degree = np.deg2rad(degree)
@@ -1220,6 +1393,75 @@ class Ui(QtWidgets.QMainWindow):
         elif toPoint:
             #Nao sei se ta certo
             self.translacao(obj, int(pX), int(pY))
+            
+    def rotacao3D(self, obj, rotX, rotY, rotZ, toOrigin, toObject, toPoint, pX, pY, pZ):
+        rotX = np.deg2rad(rotX)
+        rotY = np.deg2rad(rotY)
+        rotZ = np.deg2rad(rotZ)
+        centroInicial = self.find_center(obj)
+        if toObject:
+            self.translacao3D(obj, -centroInicial[0], -centroInicial[1], -centroInicial[2])
+        elif toPoint:
+            #Nao sei se ta certo
+            if not pX or not pY or not pZ:
+                self.status.addItem("Erro: ponto de rotação não especificado.")
+                return
+            self.translacao(obj, -int(pX), -int(pY), -int(pZ))
+
+        if obj.type == "Point":
+            P = [obj.x, obj.y, obj.z, 1]
+            Tx = [  [1, 0, 0, 0],
+                    [0, np.cos(rotX), np.sin(rotX), 0],
+                    [0, -np.sin(rotX), np.cos(rotX), 0],
+                    [0, 0, 0, 1],
+                ]
+            Ty = [  [np.cos(rotY), 0, -np.sin(rotY), 0],
+                    [0, 1, 0, 0],
+                    [np.sin(rotY), 0, np.cos(rotY), 0],
+                    [0, 0, 0, 1],
+                ]
+            Tz = [  [np.cos(rotZ), np.sin(rotZ), 0, 0],
+                    [-np.sin(rotZ), np.cos(rotZ), 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1],
+                ]
+            R = np.matmul(P, Tx)
+            R = np.matmul(R, Ty)
+            (X, Y, Z, _) = np.matmul(R, Tz)
+            obj.x = X
+            obj.y = Y
+            obj.z = Z
+
+        elif obj.type == "Polygon3D":
+            Tx = [  [1, 0, 0, 0],
+                    [0, np.cos(rotX), np.sin(rotX), 0],
+                    [0, -np.sin(rotX), np.cos(rotX), 0],
+                    [0, 0, 0, 1],
+                ]
+            Ty = [  [np.cos(rotY), 0, -np.sin(rotY), 0],
+                    [0, 1, 0, 0],
+                    [np.sin(rotY), 0, np.cos(rotY), 0],
+                    [0, 0, 0, 1],
+                ]
+            Tz = [  [np.cos(rotZ), np.sin(rotZ), 0, 0],
+                    [-np.sin(rotZ), np.cos(rotZ), 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1],
+                ]
+            for p in obj.points:
+                P = (p.x, p.y, p.z, 1)
+                R = np.matmul(P, Tx)
+                R = np.matmul(R, Ty)
+                (X, Y, Z, _) = np.matmul(R, Tz)
+                p.x = X
+                p.y = Y 
+                p.z = Z
+
+        if toObject:
+            self.translacao3D(obj, centroInicial[0], centroInicial[1], centroInicial[2])
+        elif toPoint:
+            #Nao sei se ta certo
+            self.translacao3D(obj, int(pX), int(pY), int(pZ))
 
     # FUNCOES DE VISUALIZACAO
 
