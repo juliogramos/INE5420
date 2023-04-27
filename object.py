@@ -42,3 +42,22 @@ class BSplineCurve:
     type: str = "Curve"
     filled = False
 
+@dataclass
+class Point3D:
+    x: int
+    y: int
+    z: int
+    name: str = ""
+    color: tuple = (0,0,0)
+    cn_x: int = 0
+    cn_y: int = 0
+    cn_z: int = 0
+    type: str = "Point3D"
+    
+@dataclass
+class Object3D:
+    points: list[Point]
+    edges: list[int]
+    name: str = ""
+    color: tuple = (0,0,0)
+    type: str = "Polygon3D"

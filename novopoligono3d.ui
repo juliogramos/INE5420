@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>204</width>
-    <height>254</height>
+    <width>503</width>
+    <height>444</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,9 +16,9 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>220</y>
-     <width>161</width>
+     <x>280</x>
+     <y>380</y>
+     <width>171</width>
      <height>32</height>
     </rect>
    </property>
@@ -32,67 +32,34 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>200</x>
      <y>10</y>
-     <width>91</width>
+     <width>131</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>Novo Ponto</string>
+    <string>Novo polígono 3D</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
+  <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>16</width>
-     <height>17</height>
+     <x>70</x>
+     <y>350</y>
+     <width>101</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>X</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>100</y>
-     <width>67</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Y</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="xValue">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>40</y>
-     <width>113</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="yValue">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>90</y>
-     <width>113</width>
-     <height>25</height>
-    </rect>
+    <string>Cor do Poligono</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="rValue">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>170</y>
+     <x>20</x>
+     <y>380</y>
      <width>51</width>
      <height>16</height>
     </rect>
@@ -101,28 +68,64 @@
   <widget class="QLineEdit" name="gValue">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>170</y>
+     <x>80</x>
+     <y>380</y>
      <width>51</width>
      <height>16</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_10">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>410</y>
+     <width>16</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>B</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="listaPontos">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>80</y>
+     <width>221</width>
+     <height>192</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="novoPonto">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>290</y>
+     <width>89</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>+ Ponto</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="bValue">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>170</y>
+     <x>150</x>
+     <y>380</y>
      <width>51</width>
      <height>16</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_4">
+  <widget class="QLabel" name="label_9">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>200</y>
+     <x>40</x>
+     <y>410</y>
      <width>16</width>
      <height>17</height>
     </rect>
@@ -131,12 +134,12 @@
     <string>R</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
+  <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>90</x>
-     <y>200</y>
-     <width>21</width>
+     <x>100</x>
+     <y>410</y>
+     <width>16</width>
      <height>17</height>
     </rect>
    </property>
@@ -144,30 +147,27 @@
     <string>G</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QPushButton" name="novaAresta">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>200</y>
-     <width>67</width>
-     <height>17</height>
+     <x>330</x>
+     <y>290</y>
+     <width>89</width>
+     <height>25</height>
     </rect>
    </property>
    <property name="text">
-    <string>B</string>
+    <string>+ Aresta</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_7">
+  <widget class="QListWidget" name="listaArestas">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>140</y>
-     <width>67</width>
-     <height>17</height>
+     <x>260</x>
+     <y>80</y>
+     <width>231</width>
+     <height>192</height>
     </rect>
-   </property>
-   <property name="text">
-    <string>Cor do Ponto</string>
    </property>
   </widget>
  </widget>
@@ -180,12 +180,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>180</x>
-     <y>251</y>
+     <x>248</x>
+     <y>254</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>253</y>
+     <y>274</y>
     </hint>
    </hints>
   </connection>
@@ -196,12 +196,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>180</x>
-     <y>251</y>
+     <x>316</x>
+     <y>260</y>
     </hint>
     <hint type="destinationlabel">
-     <x>203</x>
-     <y>253</y>
+     <x>286</x>
+     <y>274</y>
     </hint>
    </hints>
   </connection>

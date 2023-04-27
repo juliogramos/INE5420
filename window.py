@@ -6,12 +6,15 @@ import numpy as np
 from dataclasses import dataclass
 
 from numpy._typing import _256Bit
-from object import BSplineCurve, Point, Line, Wireframe, Curve2D
+from object import BSplineCurve, Point, Line, Wireframe, Curve2D, Point3D, Object3D
 from novoPonto import UiPonto
 from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 from novaCurva import UiCurva
 from novaBSCurva import UiBSCurva
+from novoPonto3D import UiPonto3D
+from novoPoligono3D import UiPoligono3D
+
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
 from descritorobj import DescritorOBJ
@@ -33,7 +36,8 @@ class Ui(QtWidgets.QMainWindow):
         self.setButtons()
 
         #Determina o nome do objeto
-        self.indexes = [1, 1, 1, 1]
+        #Ponto, Linha, Poligono, Curva, Spline, Ponto3D, Objeto3D
+        self.indexes = [1, 1, 1, 1, 1, 1, 1]
         self.displayFile = []
 
         self.vpSize = [0, 0, 400, 400]
@@ -86,6 +90,9 @@ class Ui(QtWidgets.QMainWindow):
         self.newPoligon.clicked.connect(self.novoPoligonoWindow)
         self.newCurve.clicked.connect(self.novaCurvaWindow)
         self.newBSCurve.clicked.connect(self.novaBSplineCurvaWindow)
+        
+        self.newPoint3D.clicked.connect(self.novoPonto3DWindow)
+        self.newPoligon3D.clicked.connect(self.novoPoligono3DWindow)
 
         self.zoomPlus.clicked.connect(self.zoomViewportIn)
         self.zoomMinus.clicked.connect(self.zoomViewportOut)
@@ -123,6 +130,7 @@ class Ui(QtWidgets.QMainWindow):
         self.painter.drawLine(polygon[2], polygon[3])
 
         print("desenhou borda")
+        
     def drawOne(self, object):
         self.applyPPCmatrixOne(object)
         self.pen = QtGui.QPen(QtGui.QColor(object.color[0], object.color[1], object.color[2], 255))
@@ -133,7 +141,6 @@ class Ui(QtWidgets.QMainWindow):
             (x, y) = self.viewportTransformation(object)
             if self.pointClipping(x,y):
                 self.painter.drawPoint(x, y)
-            
         
         elif object.type == "Line":
             (x1, y1) = self.viewportTransformation(object.p1)
@@ -203,6 +210,28 @@ class Ui(QtWidgets.QMainWindow):
                 print(len(nps))
                 for i in range(1, len(nps)):
                     self.painter.drawLine(int(nps[i-1][0]), int(nps[i-1][1]), int(nps[i][0]), int(nps[i][1]))
+                    
+        elif object.type == "Point3D":
+            #MUDAR PRO CERTO
+            (x, y) = self.viewportTransformation(object)
+            if self.pointClipping(x,y):
+                self.painter.drawPoint(x, y)
+                
+        elif object.type == "Polygon3D":
+            ps = []
+            for p in object.points:
+                ps.append(self.viewportTransformation(p))
+  
+            ok, newobj = self.Waclippig(ps)
+            nps = newobj[0]
+            print(nps)
+            print(object)
+            
+            if not ok: return
+
+            for (p1, p2) in object.edges:
+                self.painter.drawLine(int(nps[p1][0]), int(nps[p1][1]), int(nps[p2][0]), int(nps[p2][1]))
+                
         
 
     def drawAll(self):
@@ -634,7 +663,7 @@ class Ui(QtWidgets.QMainWindow):
                 return
 
             curvePoints = self.makeCurve(ps, precisao, cont)
-            newCurve = Curve2D(curvePoints, "Curva {}".format(self.indexes[2]))
+            newCurve = Curve2D(curvePoints, "Curva {}".format(self.indexes[3]))
             self.displayFile.append(newCurve)
             self.indexes[3] += 1
             self.objectList.addItem(newCurve.name)
@@ -672,9 +701,9 @@ class Ui(QtWidgets.QMainWindow):
                 print("CURVEPOINTS:")
                 for p in curvePoints:
                     print(p)
-                newCurve = BSplineCurve(curvePoints, "Curva {}".format(self.indexes[2]))
+                newCurve = BSplineCurve(curvePoints, "Curva {}".format(self.indexes[4]))
                 self.displayFile.append(newCurve)
-                self.indexes[3] += 1
+                self.indexes[4] += 1
                 self.objectList.addItem(newCurve.name)
                 if novaSPCurvaDialog.rValue.text() and novaSPCurvaDialog.gValue.text() and novaSPCurvaDialog.bValue.text():
                     newCurve.color = ((int(novaSPCurvaDialog.rValue.text()), int(novaSPCurvaDialog.gValue.text()), int(novaSPCurvaDialog.bValue.text()), 255))
@@ -796,6 +825,54 @@ class Ui(QtWidgets.QMainWindow):
         print("sp points")
         print(spline_points)
         return spline_points
+    
+    def novoPonto3DWindow(self):
+        novoPontoDialog = UiPonto3D()
+        if novoPontoDialog.exec_() and (
+            novoPontoDialog.xValue.text() and 
+            novoPontoDialog.yValue.text() and
+            novoPontoDialog.zValue.text()):
+            
+            x = int(novoPontoDialog.xValue.text())
+            y = int(novoPontoDialog.yValue.text())
+            z = int(novoPontoDialog.zValue.text())
+            
+            novoPonto = Point3D(x, y, z, "Ponto 3D{}".format(self.indexes[5]), 0, 0)
+            self.displayFile.append(novoPonto)
+            self.indexes[5] += 1
+            self.objectList.addItem(novoPonto.name)
+            if novoPontoDialog.rValue.text() and novoPontoDialog.gValue.text() and novoPontoDialog.bValue.text():
+                novoPonto.color = (int(novoPontoDialog.rValue.text()), int(novoPontoDialog.gValue.text()), int(novoPontoDialog.bValue.text()), 255)
+            else:
+                novoPonto.color = (0,0,0,255)
+            self.drawOne(novoPonto)
+
+            self.status.addItem("Ponto 3D adicionado com sucesso.")
+        else:
+            self.status.addItem("Falha ao adicionar ponto.")
+
+        self.update()
+        
+    def novoPoligono3DWindow(self):
+        novoPoligonoDialog = UiPoligono3D()
+        if novoPoligonoDialog.exec_() and novoPoligonoDialog.polyList and novoPoligonoDialog.edgeList:
+            newPoly = Object3D(novoPoligonoDialog.polyList, 
+                               novoPoligonoDialog.edgeList,
+                               "Polígono {}".format(self.indexes[2]))
+            print(newPoly)
+            self.displayFile.append(newPoly)
+            self.indexes[2] += 1
+            self.objectList.addItem(newPoly.name)
+            if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
+                newPoly.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+            else:
+                newPoly.color = (0,0,0,255)
+            self.drawOne(newPoly)
+            self.status.addItem("Polígono 3D adicionado com sucesso.")
+        else:
+            self.status.addItem("Falha ao adicionar polígono 3D.")
+        self.update()
+    
     def transformaWindow(self):
         if self.objectList.currentRow() == -1:
             self.status.addItem("Erro: nenhum objeto selecionado.")
@@ -940,6 +1017,20 @@ class Ui(QtWidgets.QMainWindow):
             print("N: {}, {}".format(obj.p1.x, obj.p1.y))
             print("PPC: {}, {}".format(obj.p1.cn_x, obj.p1.cn_y))
         elif obj.type == "Polygon" or obj.type == "Curve":
+            print(obj.points)
+            for p in obj.points:
+                P = (p.x, p.y, 1)
+                (X,Y,W) = np.matmul(P, self.ppcMatrix)
+                p.cn_x = X
+                p.cn_y = Y
+        elif obj.type == "Point3D":
+            #MUDAR PRO CERTO
+            P = [obj.x, obj.y, 1]
+            (X,Y,W) = np.dot(P, self.ppcMatrix)
+            obj.cn_x = X
+            obj.cn_y = Y
+        elif obj.type == "Polygon3D":
+            #MUDAR PRO CERTO
             print(obj.points)
             for p in obj.points:
                 P = (p.x, p.y, 1)
