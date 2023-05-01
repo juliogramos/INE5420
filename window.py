@@ -234,7 +234,6 @@ class Ui(QtWidgets.QMainWindow):
         self.applyPPCmatrixOne(object)
         
         if object.type == "Point3D":
-            #MUDAR PRO CERTO
             (x, y) = self.viewportTransformation(object)
             if self.pointClipping(x,y):
                 self.painter.drawPoint(x, y)
@@ -243,16 +242,20 @@ class Ui(QtWidgets.QMainWindow):
             ps = []
             for p in object.points:
                 ps.append(self.viewportTransformation(p))
-  
-            ok, newobj = self.Waclippig(ps)
-            nps = newobj[0]
-            print(nps)
-            print(object)
-            
-            if not ok: return
 
-            for (p1, p2) in object.edges:
-                self.painter.drawLine(int(nps[p1][0]), int(nps[p1][1]), int(nps[p2][0]), int(nps[p2][1]))
+            nedges = []
+            for e in object.edges:
+                x1 = ps[e[0]][0]
+                y1 = ps[e[0]][1]
+                x2 = ps[e[1]][0]
+                y2 = ps[e[1]][1]
+                print(x1, y1, x2, y2)
+                ok, nx1, ny1, nx2, ny2 = self.csLineClipping(x1, y1, x2, y2)
+                if ok:
+                    nedges.append(((nx1, ny1),(nx2, ny2)))
+
+            for (p1, p2) in nedges:
+                self.painter.drawLine(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
         
 
     def drawAll(self):
