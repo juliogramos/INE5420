@@ -45,7 +45,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.vpSize = [0, 0, 400, 400]
         self.wSize = [0, 0, 400, 300]
-        self.windowAngle = 0
+        self.windowAngle = [0, 0, 0] #X, Y, Z
         self.projmode = "ortogonal" #ou "perspectiva"
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
@@ -58,6 +58,12 @@ class Ui(QtWidgets.QMainWindow):
                                 [0, 0, 0]
                             ]
         
+        self.ppcMatrix3D =      [   [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0]
+                                ]
+        
         self.descObj = DescritorOBJ()
         
         self.makePPCmatrix()
@@ -65,7 +71,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.drawBorder()
 
-        #self.draw_something()
+        self.cuboteste()
     
 
     def viewportTransformation(self, point):
@@ -1033,9 +1039,25 @@ class Ui(QtWidgets.QMainWindow):
     def rodaWindow(self):
         rotDialog = UiRotWin()
         if rotDialog.exec_():
-            if rotDialog.rot_angulo.text():
-                ang = int(rotDialog.rot_angulo.text())
-                self.windowAngle -= ang
+            if rotDialog.rotX.text() or rotDialog.rotY.text() or rotDialog.rotZ.text():
+                if (rotDialog.rotX.text()):
+                    angX = int(rotDialog.rotX.text())
+                else:
+                    angX = 0
+                self.windowAngle[0] -= angX
+                
+                if (rotDialog.rotY.text()):
+                    angY = int(rotDialog.rotY.text())
+                else:
+                    angY = 0
+                self.windowAngle[1] -= angY
+                
+                if (rotDialog.rotZ.text()):
+                    angZ = int(rotDialog.rotZ.text())
+                else:
+                    angZ = 0
+                self.windowAngle[2] -= angZ
+                
                 self.makePPCmatrix()
                 self.applyPPCmatrixWindow()
                 self.drawAll()
@@ -1081,22 +1103,19 @@ class Ui(QtWidgets.QMainWindow):
         width = self.cgWindow.xMax - self.cgWindow.xMin
         height = self.cgWindow.yMax - self.cgWindow.yMin
         center = self.find_window_center()
+        
+        #2D
         matTrans =  [   [1, 0, 0],
                         [0, 1, 0],
                         [-center[0], -center[1], 1]
                     ]
 
-        """ y = [0, 1]
-        vup = [self.cgWindow.xMin, self.cgWindow.xMax]
-        vupnorm = vup / np.linalg.norm(vup)
-        ang  = np.arccos(np.clip(np.dot(y, vupnorm), -1.0, 1.0))
-        print("ANG: ")
-        print(ang) """
+        angZ = np.deg2rad(self.windowAngle[2])
+        angX = np.deg2rad(self.windowAngle[0])
+        angY = np.deg2rad(self.windowAngle[1])
 
-        ang = np.deg2rad(self.windowAngle)
-
-        matRot =    [   [np.cos(ang), -np.sin(ang), 0],
-                        [np.sin(ang), np.cos(ang), 0],
+        matRot =    [   [np.cos(angZ), -np.sin(angZ), 0],
+                        [np.sin(angZ), np.cos(angZ), 0],
                         [0, 0, 1]
                     ]
         
@@ -1108,6 +1127,44 @@ class Ui(QtWidgets.QMainWindow):
         
         matPPC = np.dot(np.dot(matTrans, matRot), matScale)
         self.ppcMatrix = matPPC
+        
+        #3D
+        matTrans3D =  [   [1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 1, 0],
+                        [-center[0], -center[1], 1, 1]
+                    ]
+
+        angZ = np.deg2rad(self.windowAngle[2])
+        angX = np.deg2rad(self.windowAngle[0])
+        angY = np.deg2rad(self.windowAngle[1])
+
+        Rx = [  [1, 0, 0, 0],
+                    [0, np.cos(angX), np.sin(angX), 0],
+                    [0, -np.sin(angX), np.cos(angX), 0],
+                    [0, 0, 0, 1],
+                ]
+        Ry = [  [np.cos(angY), 0, -np.sin(angY), 0],
+                [0, 1, 0, 0],
+                [np.sin(angY), 0, np.cos(angY), 0],
+                [0, 0, 0, 1],
+            ]
+        Rz = [  [np.cos(angZ), np.sin(angZ), 0, 0],
+                [-np.sin(angZ), np.cos(angZ), 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ]
+        
+        matRot3D = np.dot(np.dot(Rx, Ry), Rz)
+        
+        matScale3D =  [   [2/width,   0,          0, 0],
+                        [0,         2/height,   0, 0],
+                        [0,         0,          1, 0],
+                        [0 , 0, 0 , 1]
+                    ]
+        
+        matPPC3D = np.dot(np.dot(matTrans3D, matRot3D), matScale3D)
+        self.ppcMatrix3D = matPPC3D
 
     def applyPPCmatrixOne(self, obj):
         if obj.type == "Point":
@@ -1135,18 +1192,20 @@ class Ui(QtWidgets.QMainWindow):
                 p.cn_y = Y
         elif obj.type == "Point3D":
             #MUDAR PRO CERTO
-            P = [obj.x, obj.y, 1]
-            (X,Y,W) = np.dot(P, self.ppcMatrix)
+            P = [obj.x, obj.y, obj.z, 1]
+            (X,Y,Z,W) = np.dot(P, self.ppcMatrix3D)
             obj.cn_x = X
             obj.cn_y = Y
+            obj.cn_z = Z
         elif obj.type == "Polygon3D":
             #MUDAR PRO CERTO
             print(obj.points)
             for p in obj.points:
-                P = (p.x, p.y, 1)
-                (X,Y,W) = np.matmul(P, self.ppcMatrix)
+                P = (p.x, p.y, p.z, 1)
+                (X,Y,Z, W) = np.matmul(P, self.ppcMatrix3D)
                 p.cn_x = X
                 p.cn_y = Y
+                p.cn_z = Z
 
     def applyPPCmatrixAll(self):
         for obj in self.displayFile:
@@ -1488,7 +1547,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def panRight(self):
         v = [1, 0]
-        ang = np.deg2rad(self.windowAngle)
+        ang = np.deg2rad(self.windowAngle[2])
         x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
         y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
         print([x, y])
@@ -1502,7 +1561,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def panLeft(self):
         v = [-1, 0]
-        ang = np.deg2rad(self.windowAngle)
+        ang = np.deg2rad(self.windowAngle[2])
         x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
         y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
         print([x, y])
@@ -1517,7 +1576,7 @@ class Ui(QtWidgets.QMainWindow):
     def panUp(self):
         #PROVISORIO
         v = [0, 1]
-        ang = np.deg2rad(self.windowAngle)
+        ang = np.deg2rad(self.windowAngle[2])
         x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
         y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
         print([x, y])
@@ -1531,7 +1590,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def panDown(self):
         v = [0, -1]
-        ang = np.deg2rad(self.windowAngle)
+        ang = np.deg2rad(self.windowAngle[2])
         x = np.cos(ang)*v[0] - np.sin(ang)*v[1]
         y = np.sin(ang)*v[0] + np.cos(ang)*v[1]
         print([x, y])
@@ -1554,7 +1613,7 @@ class Ui(QtWidgets.QMainWindow):
         self.cgWindow.xMax = self.wSize[2]
         self.cgWindow.yMax = self.wSize[3]
 
-        self.windowAngle = 0
+        self.windowAngle = [0, 0, 0]
 
         self.makePPCmatrix()
         self.applyPPCmatrixWindow()
@@ -1569,4 +1628,39 @@ class Ui(QtWidgets.QMainWindow):
 
     def printalista(self):
         print(self.objectList.currentRow())
+        
+    def cuboteste(self):
+        ps = []
+        ps.append(Point3D(100, 100, 100))
+        ps.append(Point3D(200, 100, 100))
+        ps.append(Point3D(200, 200, 100))
+        ps.append(Point3D(100, 200, 100))
+        
+        ps.append(Point3D(100, 100, 200))
+        ps.append(Point3D(200, 100, 200))
+        ps.append(Point3D(200, 200, 200))
+        ps.append(Point3D(100, 200, 200))
+        
+        edges = []
+        edges.append((0, 1))
+        edges.append((1, 2))
+        edges.append((2, 3))
+        edges.append((3, 0))
+        
+        edges.append((4, 5))
+        edges.append((5, 6))
+        edges.append((6, 7))
+        edges.append((7, 4))
+        
+        edges.append((0, 4))
+        edges.append((1, 5))
+        edges.append((2, 6))
+        edges.append((3, 7))
+        
+        cuboteste = Object3D(ps, edges, "CUBOTESTE")
+        self.displayFile.append(cuboteste)
+        self.objectList.addItem(cuboteste.name)
+        self.status.addItem("CUBOTESTE adicionado com sucesso.")
+        self.drawOne(cuboteste)
+        self.update()
     #Fazer um método pra dar self.painter.end() no término do programa
