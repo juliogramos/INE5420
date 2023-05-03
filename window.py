@@ -46,7 +46,9 @@ class Ui(QtWidgets.QMainWindow):
         self.vpSize = [0, 0, 400, 400]
         self.wSize = [0, 0, 400, 300]
         self.windowAngle = [0, 0, 0] #X, Y, Z
+        
         self.projmode = "ortogonal" #ou "perspectiva"
+        self.perspd = 100
         
         self.cgViewport = Container(self.vpSize[0], self.vpSize[1], self.vpSize[2], self.vpSize[3])
         self.cgWindow = Container(self.wSize[0], self.wSize[1], self.wSize[2], self.wSize[3])
@@ -119,6 +121,10 @@ class Ui(QtWidgets.QMainWindow):
         self.RestoreButtom.clicked.connect(self.restoreOriginal)
 
         self.loadButton.clicked.connect(self.loadObjs)
+        
+        self.perspSlider.valueChanged.connect(self.perspChange)
+        self.projOrt.toggled.connect(self.drawAll)
+        self.projPersp.toggled.connect(self.drawAll)
 
     def drawBorder(self, color=Qt.red):
         self.pen = QtGui.QPen(color)
@@ -1193,18 +1199,31 @@ class Ui(QtWidgets.QMainWindow):
                 (X,Y,W) = np.matmul(P, self.ppcMatrix)
                 p.cn_x = X
                 p.cn_y = Y
-        elif obj.type == "Point3D":
-            #MUDAR PRO CERTO
-            P = [obj.x, obj.y, obj.z, 1]
-            (X,Y,Z,W) = np.dot(P, self.ppcMatrix3D)
+        elif obj.type == "Point3D": 
+            if self.projPersp.isChecked():
+                nx = obj.x/(obj.z/self.perspd)
+                ny = obj.y/(obj.z/self.perspd)
+                P = (nx, ny, obj.z, 1)
+            else:
+                P = (obj.x, obj.y, obj.z, 1)
+            
+            (X,Y,Z,_) = np.dot(P, self.ppcMatrix3D)
             obj.cn_x = X
             obj.cn_y = Y
             obj.cn_z = Z
         elif obj.type == "Polygon3D":
-            #MUDAR PRO CERTO
-            print(obj.points)
             for p in obj.points:
-                P = (p.x, p.y, p.z, 1)
+                if self.projPersp.isChecked():
+                    nx = p.x/(p.z/self.perspd)
+                    ny = p.y/(p.z/self.perspd)
+                    P = (nx, ny, p.z, 1)
+                else:
+                    P = (p.x, p.y, p.z, 1)
+                 
+                print("ORIG E PERSP")
+                print((p.x, p.y, p.z, 1))
+                print(P)
+                
                 (X,Y,Z, W) = np.matmul(P, self.ppcMatrix3D)
                 p.cn_x = X
                 p.cn_y = Y
@@ -1631,6 +1650,10 @@ class Ui(QtWidgets.QMainWindow):
 
     def printalista(self):
         print(self.objectList.currentRow())
+        
+    def perspChange(self):
+        self.perspd = self.perspSlider.value()
+        self.drawAll()
         
     def cuboteste(self):
         ps = []
