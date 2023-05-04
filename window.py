@@ -241,10 +241,12 @@ class Ui(QtWidgets.QMainWindow):
         
         if object.type == "Point3D":
             (x, y) = self.viewportTransformation(object)
-            if self.pointClipping(x,y):
+            if self.pointClipping(x,y) and object.z > 0:
                 self.painter.drawPoint(x, y)
                 
         elif object.type == "Polygon3D":
+            if (any(p.z < 0 for p in object.points)): return
+            
             ps = []
             for p in object.points:
                 ps.append(self.viewportTransformation(p))
@@ -259,7 +261,7 @@ class Ui(QtWidgets.QMainWindow):
                 ok, nx1, ny1, nx2, ny2 = self.csLineClipping(x1, y1, x2, y2)
                 if ok:
                     nedges.append(((nx1, ny1),(nx2, ny2)))
-
+            
             for (p1, p2) in nedges:
                 self.painter.drawLine(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
         
