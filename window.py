@@ -13,6 +13,7 @@ from novaLinha import UiLinha
 from novoPoligono import UiPoligono
 from novaCurva import UiCurva
 from novaBSCurva import UiBSCurva
+from novaBeziercurva import UiBezierCurva
 from novoPonto3D import UiPonto3D
 from novoPoligono3D import UiPoligono3D
 
@@ -918,22 +919,27 @@ class Ui(QtWidgets.QMainWindow):
             self.transforma3D()
             
     def novaBiBezierWindow(self):
-        p1 = Point3D(100, 100, 100)
-        p2 = Point3D(100, 130, 140)
-        p3 = Point3D(100, 160, 130)
-        p4 = Point3D(100, 200, 100)
-        p5 = Point3D(130, 125, 120)
-        p6 = Point3D(120, 160, 150)
-        p7 = Point3D(130, 180, 150)
-        p8 = Point3D(140, 100, 120)
-        p9 = Point3D(160, 130, 120)
-        p10 = Point3D(180, 160, 150)
-        p11 = Point3D(170, 200, 145)
-        p12 = Point3D(160, 100, 125)
-        p13 = Point3D(200, 100, 100)
-        p14 = Point3D(210, 130, 140)
-        p15 = Point3D(210, 160, 130)
-        p16 = Point3D(200, 190, 100)
+        novoBezierDialog = UiBezierCurva()
+        if novoBezierDialog.exec_() and  novoBezierDialog.xValue.text() and novoBezierDialog.yValue.text() and novoBezierDialog.zValue.text() and novoBezierDialog.xValue_2.text() and novoBezierDialog.yValue_2.text() and novoBezierDialog.zValue_2.text() and  novoBezierDialog.xValue_3.text() and novoBezierDialog.yValue_3.text() and novoBezierDialog.zValue_3.text() and  novoBezierDialog.xValue_4.text() and novoBezierDialog.yValue_4.text() and novoBezierDialog.zValue_4.text() and  novoBezierDialog.xValue_5.text() and novoBezierDialog.yValue_5.text() and novoBezierDialog.zValue_5.text() and  novoBezierDialog.xValue_6.text() and novoBezierDialog.yValue_6.text() and novoBezierDialog.zValue_6.text() and  novoBezierDialog.xValue_7.text() and novoBezierDialog.yValue_7.text() and novoBezierDialog.zValue_7.text() and  novoBezierDialog.xValue_8.text() and novoBezierDialog.yValue_8.text() and novoBezierDialog.zValue_8.text() and  novoBezierDialog.xValue_9.text() and novoBezierDialog.yValue_9.text() and novoBezierDialog.zValue_9.text() and  novoBezierDialog.xValue_10.text() and novoBezierDialog.yValue_10.text() and novoBezierDialog.zValue_10.text() and  novoBezierDialog.xValue_11.text() and novoBezierDialog.yValue_11.text() and novoBezierDialog.zValue_11.text() and  novoBezierDialog.xValue_12.text() and novoBezierDialog.yValue_12.text() and novoBezierDialog.zValue_12.text() and  novoBezierDialog.xValue_13.text() and novoBezierDialog.yValue_13.text() and novoBezierDialog.zValue_13.text() and  novoBezierDialog.xValue_14.text() and novoBezierDialog.yValue_14.text() and novoBezierDialog.zValue_14.text() and  novoBezierDialog.xValue_15.text() and novoBezierDialog.yValue_15.text() and novoBezierDialog.zValue_15.text() and  novoBezierDialog.xValue_16.text() and novoBezierDialog.yValue_16.text() and novoBezierDialog.zValue_15.text():
+            print("foi")
+
+
+        p1 = Point3D(int(novoBezierDialog.xValue.text()), int(novoBezierDialog.yValue.text()), int(novoBezierDialog.zValue.text()))
+        p2 = Point3D(int(novoBezierDialog.xValue_2.text()), int(novoBezierDialog.yValue_2.text()), int(novoBezierDialog.zValue_2.text()))
+        p3 = Point3D(int(novoBezierDialog.xValue_3.text()), int(novoBezierDialog.yValue_3.text()), int(novoBezierDialog.zValue_3.text()))
+        p4 = Point3D(int(novoBezierDialog.xValue_4.text()), int(novoBezierDialog.yValue_4.text()), int(novoBezierDialog.zValue_4.text()))
+        p5 = Point3D(int(novoBezierDialog.xValue_5.text()), int(novoBezierDialog.yValue_5.text()), int(novoBezierDialog.zValue_5.text()))
+        p6 = Point3D(int(novoBezierDialog.xValue_6.text()), int(novoBezierDialog.yValue_6.text()), int(novoBezierDialog.zValue_6.text()))
+        p7 = Point3D(int(novoBezierDialog.xValue_7.text()), int(novoBezierDialog.yValue_7.text()), int(novoBezierDialog.zValue_7.text()))
+        p8 = Point3D(int(novoBezierDialog.xValue_8.text()), int(novoBezierDialog.yValue_8.text()), int(novoBezierDialog.zValue_8.text()))
+        p9 = Point3D(int(novoBezierDialog.xValue_9.text()), int(novoBezierDialog.yValue_9.text()), int(novoBezierDialog.zValue_9.text()))
+        p10 = Point3D(int(novoBezierDialog.xValue_10.text()), int(novoBezierDialog.yValue_10.text()), int(novoBezierDialog.zValue_10.text()))
+        p11 = Point3D(int(novoBezierDialog.xValue_11.text()), int(novoBezierDialog.yValue_11.text()), int(novoBezierDialog.zValue_11.text()))
+        p12 = Point3D(int(novoBezierDialog.xValue_12.text()), int(novoBezierDialog.yValue_12.text()), int(novoBezierDialog.zValue_12.text()))
+        p13 = Point3D(int(novoBezierDialog.xValue_13.text()), int(novoBezierDialog.yValue_13.text()), int(novoBezierDialog.zValue_13.text()))
+        p14 = Point3D(int(novoBezierDialog.xValue_14.text()), int(novoBezierDialog.yValue_14.text()), int(novoBezierDialog.zValue_14.text()))
+        p15 = Point3D(int(novoBezierDialog.xValue_15.text()), int(novoBezierDialog.yValue_15.text()), int(novoBezierDialog.zValue_15.text()))
+        p16 = Point3D(int(novoBezierDialog.xValue_16.text()), int(novoBezierDialog.yValue_16.text()), int(novoBezierDialog.zValue_16.text()))
         
         precisao = 0.2
         
