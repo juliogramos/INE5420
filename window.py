@@ -83,8 +83,8 @@ class Ui(QtWidgets.QMainWindow):
         #yvp = (1 - ((point.cn_y - self.cgWindow.yMin)/(self.cgWindow.yMax - self.cgWindow.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
         xvp = (point.cn_x - self.cgWindowPPC.xMin)/(self.cgWindowPPC.xMax - self.cgWindowPPC.xMin) * (self.cgViewport.xMax - self.cgViewport.xMin) 
         yvp = (1 - ((point.cn_y - self.cgWindowPPC.yMin)/(self.cgWindowPPC.yMax - self.cgWindowPPC.yMin))) * (self.cgViewport.yMax - self.cgViewport.yMin)
-        print(xvp)
-        print(yvp)
+        #print(xvp)
+        #print(yvp)
         return (round(xvp), round(yvp))
     
     def setCanvas(self):
@@ -105,6 +105,7 @@ class Ui(QtWidgets.QMainWindow):
         self.newCurve.clicked.connect(self.novaCurvaWindow)
         self.newBSCurve.clicked.connect(self.novaBSplineCurvaWindow)
         self.newbibezier.clicked.connect(self.novaBiBezierWindow)
+        self.newbifd.clicked.connect(self.novaBiFdWindow)
         
         self.newPoint3D.clicked.connect(self.novoPonto3DWindow)
         self.newPoligon3D.clicked.connect(self.novoPoligono3DWindow)
@@ -260,7 +261,7 @@ class Ui(QtWidgets.QMainWindow):
                 y1 = ps[e[0]][1]
                 x2 = ps[e[1]][0]
                 y2 = ps[e[1]][1]
-                print(x1, y1, x2, y2)
+                #print(x1, y1, x2, y2)
                 ok, nx1, ny1, nx2, ny2 = self.csLineClipping(x1, y1, x2, y2)
                 if ok:
                     nedges.append(((nx1, ny1),(nx2, ny2)))
@@ -920,7 +921,23 @@ class Ui(QtWidgets.QMainWindow):
             
     def novaBiBezierWindow(self):
         novoBezierDialog = UiBezierCurva()
-        if novoBezierDialog.exec_() and  novoBezierDialog.xValue.text() and novoBezierDialog.yValue.text() and novoBezierDialog.zValue.text() and novoBezierDialog.xValue_2.text() and novoBezierDialog.yValue_2.text() and novoBezierDialog.zValue_2.text() and  novoBezierDialog.xValue_3.text() and novoBezierDialog.yValue_3.text() and novoBezierDialog.zValue_3.text() and  novoBezierDialog.xValue_4.text() and novoBezierDialog.yValue_4.text() and novoBezierDialog.zValue_4.text() and  novoBezierDialog.xValue_5.text() and novoBezierDialog.yValue_5.text() and novoBezierDialog.zValue_5.text() and  novoBezierDialog.xValue_6.text() and novoBezierDialog.yValue_6.text() and novoBezierDialog.zValue_6.text() and  novoBezierDialog.xValue_7.text() and novoBezierDialog.yValue_7.text() and novoBezierDialog.zValue_7.text() and  novoBezierDialog.xValue_8.text() and novoBezierDialog.yValue_8.text() and novoBezierDialog.zValue_8.text() and  novoBezierDialog.xValue_9.text() and novoBezierDialog.yValue_9.text() and novoBezierDialog.zValue_9.text() and  novoBezierDialog.xValue_10.text() and novoBezierDialog.yValue_10.text() and novoBezierDialog.zValue_10.text() and  novoBezierDialog.xValue_11.text() and novoBezierDialog.yValue_11.text() and novoBezierDialog.zValue_11.text() and  novoBezierDialog.xValue_12.text() and novoBezierDialog.yValue_12.text() and novoBezierDialog.zValue_12.text() and  novoBezierDialog.xValue_13.text() and novoBezierDialog.yValue_13.text() and novoBezierDialog.zValue_13.text() and  novoBezierDialog.xValue_14.text() and novoBezierDialog.yValue_14.text() and novoBezierDialog.zValue_14.text() and  novoBezierDialog.xValue_15.text() and novoBezierDialog.yValue_15.text() and novoBezierDialog.zValue_15.text() and  novoBezierDialog.xValue_16.text() and novoBezierDialog.yValue_16.text() and novoBezierDialog.zValue_15.text():
+        if (novoBezierDialog.exec_() and  
+            novoBezierDialog.xValue.text() and novoBezierDialog.yValue.text() and novoBezierDialog.zValue.text() and 
+            novoBezierDialog.xValue_2.text() and novoBezierDialog.yValue_2.text() and novoBezierDialog.zValue_2.text() and  
+            novoBezierDialog.xValue_3.text() and novoBezierDialog.yValue_3.text() and novoBezierDialog.zValue_3.text() and  
+            novoBezierDialog.xValue_4.text() and novoBezierDialog.yValue_4.text() and novoBezierDialog.zValue_4.text() and  
+            novoBezierDialog.xValue_5.text() and novoBezierDialog.yValue_5.text() and novoBezierDialog.zValue_5.text() and  
+            novoBezierDialog.xValue_6.text() and novoBezierDialog.yValue_6.text() and novoBezierDialog.zValue_6.text() and  
+            novoBezierDialog.xValue_7.text() and novoBezierDialog.yValue_7.text() and novoBezierDialog.zValue_7.text() and  
+            novoBezierDialog.xValue_8.text() and novoBezierDialog.yValue_8.text() and novoBezierDialog.zValue_8.text() and  
+            novoBezierDialog.xValue_9.text() and novoBezierDialog.yValue_9.text() and novoBezierDialog.zValue_9.text() and  
+            novoBezierDialog.xValue_10.text() and novoBezierDialog.yValue_10.text() and novoBezierDialog.zValue_10.text() and  
+            novoBezierDialog.xValue_11.text() and novoBezierDialog.yValue_11.text() and novoBezierDialog.zValue_11.text() and  
+            novoBezierDialog.xValue_12.text() and novoBezierDialog.yValue_12.text() and novoBezierDialog.zValue_12.text() and  
+            novoBezierDialog.xValue_13.text() and novoBezierDialog.yValue_13.text() and novoBezierDialog.zValue_13.text() and  
+            novoBezierDialog.xValue_14.text() and novoBezierDialog.yValue_14.text() and novoBezierDialog.zValue_14.text() and  
+            novoBezierDialog.xValue_15.text() and novoBezierDialog.yValue_15.text() and novoBezierDialog.zValue_15.text() and  
+            novoBezierDialog.xValue_16.text() and novoBezierDialog.yValue_16.text() and novoBezierDialog.zValue_16.text()):
             print("foi")
 
 
@@ -1000,8 +1017,264 @@ class Ui(QtWidgets.QMainWindow):
         self.drawOne(newbibezier)
         self.status.addItem("Polígono 3D adicionado com sucesso.")
         self.update()
-            
+        
+    def novaBiFdWindow(self):
+        #INPUT USUARIO
+        #Garantir que o usuário inseriu uma matriz de 4x4 até 20x20
+        
+        p11 = Point3D(150, 190, 170)
+        p12 = Point3D(190, 190, 170)
+        p13 = Point3D(130, 190, 170)
+        p14 = Point3D(170, 190, 170)
+        
+        p21 = Point3D(190, 190, 180)
+        p22 = Point3D(100, 140, 180)
+        p23 = Point3D(190, 140, 180)
+        p24 = Point3D(160, 190, 180)
+        
+        p31 = Point3D(130, 190, 190)
+        p32 = Point3D(190, 140, 190)
+        p33 = Point3D(160, 140, 190)
+        p34 = Point3D(160, 190, 190)
+        
+        p41 = Point3D(170, 190, 200)
+        p42 = Point3D(160, 190, 200)
+        p43 = Point3D(160, 190, 200)
+        p44 = Point3D(160, 190, 200)
+        
+        tamanho = 4
+        ns = 10
+        nt = 10
+        
+        #ORGANIZA INPUT
+        #Provisorio
+        
+        ps = [p11, p12, p13, p14,
+              p21, p22, p23, p24,
+              p31, p32, p33, p34,
+              p41, p42, p43, p44]
+        
+        ax = [[0 for _ in range(tamanho)]] * tamanho
+        ay = [[0 for _ in range(tamanho)]] * tamanho
+        az = [[0 for _ in range(tamanho)]] * tamanho
+        
+        p = 0
+        for i in range(tamanho):
+            for j in range(tamanho):
+                ax[i][j] = ps[p].x
+                ay[i][j] = ps[p].y
+                az[i][j] = ps[p].z
+                p += 1
                 
+        #COEFICIENTES
+        b = [[-1, 3, -3, 1],
+              [3, -6, 3, 0],
+              [-3, 3, 0, 0],
+              [1, 0, 0, 0]]
+        cx = np.dot(np.dot(b, ax), b)
+        cy = np.dot(np.dot(b, ay), b)
+        cz = np.dot(np.dot(b, az), b)
+        print(cx)
+        print(cy)
+        print(cz)
+        
+        #DELTAS
+        deltaS = 1/(ns-1)
+        deltaT = 1/(nt-1)
+        
+        #Es, Et
+        Es = [[0 for _ in range(4)]] * 4
+        Et = [[0 for _ in range(4)]] * 4
+        
+        #Es
+        Es[0][0] = 0
+        Es[0][1] = 0
+        Es[0][2] = 0
+        Es[0][3] = 1
+        
+        Es[1][0] = deltaS ** 3
+        Es[1][1] = deltaS ** 2
+        Es[1][2] = deltaS
+        Es[1][3] = 0
+        
+        Es[2][0] = 6 * deltaS ** 3
+        Es[2][1] = 2 * deltaS ** 2
+        Es[2][2] = 0
+        Es[2][3] = 0
+        
+        Es[3][0] = 6 * deltaS ** 3
+        Es[3][1] = 0
+        Es[3][2] = 0
+        Es[3][3] = 0
+        
+        #Et
+        Et[0][0] = 0
+        Et[0][1] = 0
+        Et[0][2] = 0
+        Et[0][3] = 1
+        
+        Et[1][0] = deltaT ** 3
+        Et[1][1] = deltaT ** 2
+        Et[1][2] = deltaT
+        Et[1][3] = 0
+        
+        Et[2][0] = 6 * deltaT ** 3
+        Et[2][1] = 2 * deltaT ** 2
+        Et[2][2] = 0
+        Et[2][3] = 0
+        
+        Et[3][0] = 6 * deltaT ** 3
+        Et[3][1] = 0
+        Et[3][2] = 0
+        Et[3][3] = 0
+        
+        Et = np.array(Et).T
+        
+        print(Es, Et)
+        
+        #CONDICOES INICIAIS
+        DDx, DDy, DDz = self.refazDD(cx, cy, cz, Es, Et)
+        print("DDx")
+        print(DDx)
+        print("DDy")
+        print(DDy)
+        print("DDz")
+        print(DDz)
+        
+        #PREPARA LISTAS
+        points = []
+        edges = []
+        
+        #CALCULA LOOP S
+        for i in range(ns):
+            self.umaCurva(nt,
+                          DDx[0][0], DDx[0][1], DDx[0][2], DDx[0][3],
+                          DDy[0][0], DDy[0][1], DDy[0][2], DDy[0][3],
+                          DDz[0][0], DDz[0][1], DDz[0][2], DDz[0][3],
+                          points, edges)
+            self.somaDD(DDx, DDy, DDz)
+            
+        #NOVAS DD
+        DDx, DDy, DDz = self.refazDD(cx, cy, cz, Es, Et)
+        
+        #TRANSPÕE DD
+        DDx = np.array(DDx).T
+        DDy = np.array(DDy).T
+        DDz = np.array(DDz).T
+        
+        #CALCULA LOOP T
+        for i in range(nt):
+            self.umaCurva(ns,
+                          DDx[0][0], DDx[0][1], DDx[0][2], DDx[0][3],
+                          DDy[0][0], DDy[0][1], DDy[0][2], DDy[0][3],
+                          DDz[0][0], DDz[0][1], DDz[0][2], DDz[0][3],
+                          points, edges)
+            self.somaDD(DDx, DDy, DDz)
+            
+        #MONTA OBJETO
+        newbifd = Object3D(points, edges)
+        #print(newbifd)
+        self.displayFile.append(newbifd)
+        self.indexes[6] += 1
+        self.objectList.addItem(newbifd.name)
+        #if novoPoligonoDialog.rValue.text() and novoPoligonoDialog.gValue.text() and novoPoligonoDialog.bValue.text():
+        #    newPoly.color = ((int(novoPoligonoDialog.rValue.text()), int(novoPoligonoDialog.gValue.text()), int(novoPoligonoDialog.bValue.text()), 255))
+        #else:
+        #    newPoly.color = (0,0,0,255)
+        self.drawOne(newbifd)
+        self.status.addItem("Polígono 3D adicionado com sucesso.")
+        self.update()
+        
+    
+    def refazDD(self, cx, cy, cz, Es, Et):
+        DDx = np.dot(np.dot(Es, cx), Et)
+        DDy = np.dot(np.dot(Es, cy), Et)
+        DDz = np.dot(np.dot(Es, cz), Et)
+        print(DDx)
+        return (DDx, DDy, DDz)
+    
+    def umaCurva(self, n,   x, Dx, D2x, D3x, 
+                            y, Dy, D2y, D3y,
+                            z, Dz, D2z, D3z,
+                            points, edges):
+        
+        oldX, oldY, oldZ = x, y, z
+        points.append(Point3D(oldX, oldY, oldZ))
+        
+        for i in range(1, n):
+            x += Dx
+            Dx += D2x
+            D2x += D3x
+            
+            y += Dy
+            Dy += D2y
+            D2y += D3y
+            
+            z += Dz
+            Dz += D2z
+            D2z += D3z
+            
+            points.append(Point3D(x, y, z))
+            edges.append((i-1, i))
+            #print("OLDS: {}, {}, {}".format(oldX, oldY, oldZ))
+            #print("NEWS: {}, {}, {}".format(x, y, z))
+            oldX = x
+            oldY = y
+            oldZ = z
+            
+    def somaDD(self, DDx, DDy, DDz):
+        #LINHA1 += LINHA2
+        #x
+        DDx[0][0] += DDx[1][0]
+        DDx[0][1] += DDx[1][1]
+        DDx[0][2] += DDx[1][2]
+        DDx[0][3] += DDx[1][3]
+        #y
+        DDy[0][0] += DDy[1][0]
+        DDy[0][1] += DDy[1][1]
+        DDy[0][2] += DDy[1][2]
+        DDy[0][3] += DDy[1][3]
+        #z
+        DDz[0][0] += DDz[1][0]
+        DDz[0][1] += DDz[1][1]
+        DDz[0][2] += DDz[1][2]
+        DDz[0][3] += DDz[1][3]
+        
+        #LINHA2 += LINHA3
+        #x
+        DDx[1][0] += DDx[2][0]
+        DDx[1][1] += DDx[2][1]
+        DDx[1][2] += DDx[2][2]
+        DDx[1][3] += DDx[2][3]
+        #y
+        DDy[1][0] += DDy[2][0]
+        DDy[1][1] += DDy[2][1]
+        DDy[1][2] += DDy[2][2]
+        DDy[1][3] += DDy[2][3]
+        #z
+        DDz[1][0] += DDz[2][0]
+        DDz[1][1] += DDz[2][1]
+        DDz[1][2] += DDz[2][2]
+        DDz[1][3] += DDz[2][3]
+        
+        #LINHA3 += LINHA4
+        #x
+        DDx[2][0] += DDx[3][0]
+        DDx[2][1] += DDx[3][1]
+        DDx[2][2] += DDx[3][2]
+        DDx[2][3] += DDx[3][3]
+        #y
+        DDy[2][0] += DDy[3][0]
+        DDy[2][1] += DDy[3][1]
+        DDy[2][2] += DDy[3][2]
+        DDy[2][3] += DDy[3][3]
+        #z
+        DDz[2][0] += DDz[3][0]
+        DDz[2][1] += DDz[3][1]
+        DDz[2][2] += DDz[3][2]
+        DDz[2][3] += DDz[3][3]
+            
+        
     
     def transforma2D(self):
         print("TRANSFORMA 2D")
@@ -1309,10 +1582,6 @@ class Ui(QtWidgets.QMainWindow):
                     P = (nx, ny, p.z, 1)
                 else:
                     P = (p.x, p.y, p.z, 1)
-                 
-                print("ORIG E PERSP")
-                print((p.x, p.y, p.z, 1))
-                print(P)
                 
                 (X,Y,Z, W) = np.matmul(P, self.ppcMatrix3D)
                 p.cn_x = X
