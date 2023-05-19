@@ -148,7 +148,7 @@ class Ui(QtWidgets.QMainWindow):
         self.painter.drawLine(polygon[0], polygon[2])
         self.painter.drawLine(polygon[1], polygon[3])
         self.painter.drawLine(polygon[2], polygon[3])
-
+        self.update()
         print("desenhou borda")
         
     def drawOne(self, object):
@@ -160,6 +160,7 @@ class Ui(QtWidgets.QMainWindow):
             self.drawOne2D(object)
         else:
             self.drawOne3D(object)
+        self.update()
                 
     def drawOne2D(self, object):
         print("DRAW 2D")
@@ -281,9 +282,7 @@ class Ui(QtWidgets.QMainWindow):
         for object in self.displayFile:
             print(object)
             self.drawOne(object)
-        
             self.drawBorder()
-            self.update()
 
     def pointClipping(self, x, y):
         xIn = False

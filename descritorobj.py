@@ -4,12 +4,14 @@ import PyQt5
 from PyQt5.QtCore import Qt
 from dataclasses import dataclass
 
-from object import Point, Line, Wireframe
+from object import Point3D, Object3D
 
 @dataclass
 class PreObject:
     name: str = ""
     color: tuple = (0,0,0)
+    points = []
+    edges = []
 
 class DescritorOBJ:
     def __init__(self):
@@ -66,24 +68,14 @@ class DescritorOBJ:
 
 
     def processObjects(self, sequence):
-        commands = {
-                "v": [], # ok
-                "o": [], # ok
-                "usemtl": [], # ok
-                "mtlib": [],   
-                "p": [], #ok
-                "f": [], #ok
-                "l": [] #ok
-            }
         verts = []
         objIndex = -1
         preobjects = []
         cores = None
-        objects = []
         for e in sequence:
             if e[0] == "v":
-                (x, y, _) = e[1]
-                newVert = Point(int(float(x)), int(float(y)))
+                (x, y, z) = e[1]
+                newVert = Point3D(int(float(x)), int(float(y)), int(float(z)))
                 verts.append(newVert)
             
             elif e[0] == "o":
@@ -106,28 +98,41 @@ class DescritorOBJ:
             elif e[0] == "p":
                 index = int(e[1][0])
                 newPoint = verts[index-1]
-                newPoint.name = preobjects[objIndex].name
                 newPoint.color = preobjects[objIndex].color
-                objects.append(newPoint)
+                preobjects[objIndex].points.append(newPoint)
+                preobjects[objIndex].edges.append((len(preobjects[objIndex].points)-1, len(preobjects[objIndex].points)-1))
 
             elif e[0] == "l":
                 points = e[1]
                 p1 = verts[int(points[0])-1]
                 p2 = verts[int(points[1])-1]
-                newLine = Line(p1, p2, preobjects[objIndex].name, preobjects[objIndex].color)
-                objects.append(newLine)
+                points = [p1, p2]
+                preobjects[objIndex].points.append(p1)
+                preobjects[objIndex].points.append(p2)
+                preobjects[objIndex].edges.append((len(preobjects[objIndex].points)-2, len(preobjects[objIndex].points)-1))
 
             elif e[0] == "f":
                 print(e[1])
                 points = e[1]
                 pointList = []
+                listIndex = len(preobjects[objIndex].points)
                 for p in points:
                     realPoint = verts[int(p)-1]
                     pointList.append(realPoint)
-                newPoly = Wireframe(pointList, preobjects[objIndex].name, preobjects[objIndex].color)
-                objects.append(newPoly)
+                    preobjects[objIndex].points.append(realPoint)
+                for i in range(listIndex + 1, listIndex + len(pointList)):
+                    preobjects[objIndex].edges.append((i - 1, i))
+                preobjects[objIndex].edges.append((listIndex + len(pointList) - 1, listIndex))
+                
 
             else:
                 print("COMANDO NAO RECONHECIDO")
+        
+        objects = []
+        for pre in preobjects:
+            realObj = Object3D(pre.points, pre.edges, pre.name, pre.color)
+            objects.append(realObj)
+            print(pre.color)
+            
         return objects
 
