@@ -1020,7 +1020,17 @@ class Ui(QtWidgets.QMainWindow):
     def novaBiFdWindow(self):
         #INPUT USUARIO
         #Garantir que o usuário inseriu uma matriz de 4x4 até 20x20
+        #! rascunho 
+        # NewBfFdDialog = UiBfFd() 
+        # linhaValues = NewBfFdDialog.xValue.text()
+        matrix = [ [] ] * linhaValues 
         
+        for linha in range(linhaValues):
+            for coluna in range(linhaValues):
+                #novoPonto3Ddialog = ponto3dui
+                matrix[linha][coluna] = Point3D(int(novoPonto3Ddialog.xValue.text()), int(novoPonto3Ddialog.yValue.text()), int(novoPonto3Ddialog.zValue.text()))
+
+
         p11 = Point3D(150, 190, 170)
         p12 = Point3D(190, 190, 170)
         p13 = Point3D(130, 190, 170)
