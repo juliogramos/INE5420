@@ -16,6 +16,7 @@ from novaBSCurva import UiBSCurva
 from novaBeziercurva import UiBezierCurva
 from novoPonto3D import UiPonto3D
 from novoPoligono3D import UiPoligono3D
+from novaBiFd import UiBiFd
 
 from transformacao import UiTransforma
 from rotwindow import UiRotWin
@@ -1021,58 +1022,70 @@ class Ui(QtWidgets.QMainWindow):
         #INPUT USUARIO
         #Garantir que o usuário inseriu uma matriz de 4x4 até 20x20
         #! rascunho 
-        # NewBfFdDialog = UiBfFd() 
-        # linhaValues = NewBfFdDialog.xValue.text()
-        matrix = [ [] ] * linhaValues 
-        
-        for linha in range(linhaValues):
-            for coluna in range(linhaValues):
-                #novoPonto3Ddialog = ponto3dui
-                matrix[linha][coluna] = Point3D(int(novoPonto3Ddialog.xValue.text()), int(novoPonto3Ddialog.yValue.text()), int(novoPonto3Ddialog.zValue.text()))
+        NewBfFdDialog = UiBiFd()
+        matrix = []
+        if NewBfFdDialog.exec_() and NewBfFdDialog.xValue.text():
+            linhaValues = int(NewBfFdDialog.xValue.text())
+            matrix =  [ [[] ] * linhaValues ] * linhaValues 
+            print(matrix) 
+            for linha in range(linhaValues):
+                for coluna in range(linhaValues):
+                    
+                    novoPontoDialog = UiPonto3D()
+                    if novoPontoDialog.exec_() and (
+                        novoPontoDialog.xValue.text() and 
+                        novoPontoDialog.yValue.text() and
+                        novoPontoDialog.zValue.text()):
+                        
+                        x = int(novoPontoDialog.xValue.text())
+                        y = int(novoPontoDialog.yValue.text())
+                        z = int(novoPontoDialog.zValue.text())
+                        
+                        matrix[linha][coluna] = Point3D(x, y, z)
+        print(matrix)
 
-
-        p11 = Point3D(150, 190, 170)
-        p12 = Point3D(190, 190, 170)
-        p13 = Point3D(130, 190, 170)
-        p14 = Point3D(170, 190, 170)
-        
-        p21 = Point3D(190, 190, 180)
-        p22 = Point3D(100, 140, 180)
-        p23 = Point3D(190, 140, 180)
-        p24 = Point3D(160, 190, 180)
-        
-        p31 = Point3D(130, 190, 190)
-        p32 = Point3D(190, 140, 190)
-        p33 = Point3D(160, 140, 190)
-        p34 = Point3D(160, 190, 190)
-        
-        p41 = Point3D(170, 190, 200)
-        p42 = Point3D(160, 190, 200)
-        p43 = Point3D(160, 190, 200)
-        p44 = Point3D(160, 190, 200)
-        
-        tamanho = 4
+      #  p11 = Point3D(150, 190, 170)
+      #  p12 = Point3D(190, 190, 170)
+      #  p13 = Point3D(130, 190, 170)
+      #  p14 = Point3D(170, 190, 170)
+      #  
+      #  p21 = Point3D(190, 190, 180)
+      #  p22 = Point3D(100, 140, 180)
+      #  p23 = Point3D(190, 140, 180)
+      #  p24 = Point3D(160, 190, 180)
+      #  
+      #  p31 = Point3D(130, 190, 190)
+      #  p32 = Point3D(190, 140, 190)
+      #  p33 = Point3D(160, 140, 190)
+      #  p34 = Point3D(160, 190, 190)
+      #  
+      #  p41 = Point3D(170, 190, 200)
+      #  p42 = Point3D(160, 190, 200)
+      #  p43 = Point3D(160, 190, 200)
+      #  p44 = Point3D(160, 190, 200)
+      #  
+      #  tamanho = 4
         ns = 10
         nt = 10
+      #  
+      #  #ORGANIZA INPUT
+      #  #Provisorio
+      #  
+      #  ps = [p11, p12, p13, p14,
+      #        p21, p22, p23, p24,
+      #        p31, p32, p33, p34,
+      #        p41, p42, p43, p44]
         
-        #ORGANIZA INPUT
-        #Provisorio
-        
-        ps = [p11, p12, p13, p14,
-              p21, p22, p23, p24,
-              p31, p32, p33, p34,
-              p41, p42, p43, p44]
-        
-        ax = [[0 for _ in range(tamanho)]] * tamanho
-        ay = [[0 for _ in range(tamanho)]] * tamanho
-        az = [[0 for _ in range(tamanho)]] * tamanho
+        ax = [[0 for _ in range(linhaValues)]] * linhaValues
+        ay = [[0 for _ in range(linhaValues)]] * linhaValues
+        az = [[0 for _ in range(linhaValues)]] * linhaValues
         
         p = 0
-        for i in range(tamanho):
-            for j in range(tamanho):
-                ax[i][j] = ps[p].x
-                ay[i][j] = ps[p].y
-                az[i][j] = ps[p].z
+        for i in range(linhaValues):
+            for j in range(linhaValues):
+                ax[i][j] = matrix[i][j].x
+                ay[i][j] = matrix[i][j].y
+                az[i][j] = matrix[i][j].z
                 p += 1
                 
         #COEFICIENTES
