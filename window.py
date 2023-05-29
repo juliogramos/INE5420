@@ -1026,7 +1026,7 @@ class Ui(QtWidgets.QMainWindow):
         matrix = []
         if NewBfFdDialog.exec_() and NewBfFdDialog.xValue.text():
             linhaValues = int(NewBfFdDialog.xValue.text())
-            matrix =  [ [[] ] * linhaValues ] * linhaValues 
+            matrix =  [[None for _ in range(linhaValues)] for _ in range(linhaValues)]
             print(matrix) 
             for linha in range(linhaValues):
                 for coluna in range(linhaValues):
@@ -1043,46 +1043,21 @@ class Ui(QtWidgets.QMainWindow):
                         
                         matrix[linha][coluna] = Point3D(x, y, z)
         print(matrix)
-
-      #  p11 = Point3D(150, 190, 170)
-      #  p12 = Point3D(190, 190, 170)
-      #  p13 = Point3D(130, 190, 170)
-      #  p14 = Point3D(170, 190, 170)
-      #  
-      #  p21 = Point3D(190, 190, 180)
-      #  p22 = Point3D(100, 140, 180)
-      #  p23 = Point3D(190, 140, 180)
-      #  p24 = Point3D(160, 190, 180)
-      #  
-      #  p31 = Point3D(130, 190, 190)
-      #  p32 = Point3D(190, 140, 190)
-      #  p33 = Point3D(160, 140, 190)
-      #  p34 = Point3D(160, 190, 190)
-      #  
-      #  p41 = Point3D(170, 190, 200)
-      #  p42 = Point3D(160, 190, 200)
-      #  p43 = Point3D(160, 190, 200)
-      #  p44 = Point3D(160, 190, 200)
-      #  
-      #  tamanho = 4
-        ns = 10
-        nt = 10
-      #  
-      #  #ORGANIZA INPUT
-      #  #Provisorio
-      #  
-      #  ps = [p11, p12, p13, p14,
-      #        p21, p22, p23, p24,
-      #        p31, p32, p33, p34,
-      #        p41, p42, p43, p44]
+        
+        ns = 2
+        nt = 2
         
         ax = [[0 for _ in range(linhaValues)]] * linhaValues
         ay = [[0 for _ in range(linhaValues)]] * linhaValues
         az = [[0 for _ in range(linhaValues)]] * linhaValues
         
+        #SÓ PRA TESTE
+        matrix = self.testeMatrix()
+        
         p = 0
         for i in range(linhaValues):
             for j in range(linhaValues):
+                print(matrix[i][j])
                 ax[i][j] = matrix[i][j].x
                 ay[i][j] = matrix[i][j].y
                 az[i][j] = matrix[i][j].z
@@ -1093,9 +1068,14 @@ class Ui(QtWidgets.QMainWindow):
               [3, -6, 3, 0],
               [-3, 3, 0, 0],
               [1, 0, 0, 0]]
+        
+        #passo 1
         cx = np.dot(np.dot(b, ax), b)
         cy = np.dot(np.dot(b, ay), b)
         cz = np.dot(np.dot(b, az), b)
+        print(ax)
+        print(ay)
+        print(az)
         print(cx)
         print(cy)
         print(cz)
@@ -1119,12 +1099,12 @@ class Ui(QtWidgets.QMainWindow):
         Es[1][2] = deltaS
         Es[1][3] = 0
         
-        Es[2][0] = 6 * deltaS ** 3
-        Es[2][1] = 2 * deltaS ** 2
+        Es[2][0] = 6 * (deltaS ** 3)
+        Es[2][1] = 2 * (deltaS ** 2)
         Es[2][2] = 0
         Es[2][3] = 0
         
-        Es[3][0] = 6 * deltaS ** 3
+        Es[3][0] = 6 * (deltaS ** 3)
         Es[3][1] = 0
         Es[3][2] = 0
         Es[3][3] = 0
@@ -1140,28 +1120,24 @@ class Ui(QtWidgets.QMainWindow):
         Et[1][2] = deltaT
         Et[1][3] = 0
         
-        Et[2][0] = 6 * deltaT ** 3
-        Et[2][1] = 2 * deltaT ** 2
+        Et[2][0] = 6 * (deltaT ** 3)
+        Et[2][1] = 2 * (deltaT ** 2)
         Et[2][2] = 0
         Et[2][3] = 0
         
-        Et[3][0] = 6 * deltaT ** 3
+        Et[3][0] = 6 * (deltaT ** 3)
         Et[3][1] = 0
         Et[3][2] = 0
         Et[3][3] = 0
         
         Et = np.array(Et).T
         
-        print(Es, Et)
+        print("ES, ET")
+        print(Es)
+        print(Et)
         
         #CONDICOES INICIAIS
         DDx, DDy, DDz = self.refazDD(cx, cy, cz, Es, Et)
-        print("DDx")
-        print(DDx)
-        print("DDy")
-        print(DDy)
-        print("DDz")
-        print(DDz)
         
         #PREPARA LISTAS
         points = []
@@ -1192,6 +1168,13 @@ class Ui(QtWidgets.QMainWindow):
                           DDz[0][0], DDz[0][1], DDz[0][2], DDz[0][3],
                           points, edges)
             self.somaDD(DDx, DDy, DDz)
+            
+        print("DDx")
+        print(DDx)
+        print("DDy")
+        print(DDy)
+        print("DDz")
+        print(DDz)
             
         #MONTA OBJETO
         newbifd = Object3D(points, edges)
@@ -1296,7 +1279,31 @@ class Ui(QtWidgets.QMainWindow):
         DDz[2][2] += DDz[3][2]
         DDz[2][3] += DDz[3][3]
             
+    def testeMatrix(self):
+        p11 = Point3D(150, 190, 170)
+        p12 = Point3D(190, 190, 170)
+        p13 = Point3D(130, 190, 170)
+        p14 = Point3D(170, 190, 170)
         
+        p21 = Point3D(190, 190, 180)
+        p22 = Point3D(100, 140, 180)
+        p23 = Point3D(190, 140, 180)
+        p24 = Point3D(160, 190, 180)
+        
+        p31 = Point3D(130, 190, 190)
+        p32 = Point3D(190, 140, 190)
+        p33 = Point3D(160, 140, 190)
+        p34 = Point3D(160, 190, 190)
+        
+        p41 = Point3D(170, 190, 200)
+        p42 = Point3D(160, 190, 200)
+        p43 = Point3D(160, 190, 200)
+        p44 = Point3D(160, 190, 200)
+        matrix = [  [p11, p12, p13, p14],
+                    [p21, p22, p23, p24],
+                    [p31, p32, p33, p34],
+                    [p41, p42, p43, p44]]
+        return matrix    
     
     def transforma2D(self):
         print("TRANSFORMA 2D")
